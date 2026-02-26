@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Diagnóstico de Marca | Enredo</title>
+    <meta name="description" content="7 perguntas que revelam se sua marca está construindo valor ou apenas ocupando espaço. Resultado imediato com análise em 4 dimensões.">
+    <meta property="og:title" content="Sua marca está trabalhando a favor do crescimento?">
+    <meta property="og:description" content="Diagnóstico gratuito de marca em 4 dimensões. 7 perguntas, resultado imediato.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://7perguntas.enredo.com.br">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- META PIXEL (substitua SEU_PIXEL_ID) -->
+    <!--
+    <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', 'SEU_PIXEL_ID');
+    fbq('track', 'PageView');
+    </script>
+    -->
+
+    <!-- LINKEDIN INSIGHT TAG (substitua SEU_PARTNER_ID) -->
+    <!--
+    <script type="text/javascript">
+    _linkedin_partner_id = "SEU_PARTNER_ID";
+    window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+    window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+    </script>
+    <script type="text/javascript">
+    (function(l){if(!l){window.lintrk=function(a,b){window.lintrk.q.push([a,b])};
+    window.lintrk.q=[]}var s=document.getElementsByTagName("script")[0];
+    var b=document.createElement("script");b.type="text/javascript";b.async=true;
+    b.src="https://snap.licdn.com/li.lms-analytics/insight.min.js";
+    s.parentNode.insertBefore(b,s);})(window.lintrk);
+    </script>
+    -->
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { background: #000; }
+        #root { min-height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+    <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    /* =============================================
+       TRACKING HELPERS
+    ============================================= */
+    function trackEvent(eventName, data) {
+        // Meta Pixel
+        if (typeof fbq !== 'undefined') {
+            fbq('track', eventName, data || {});
+        }
+        // LinkedIn
+        if (typeof lintrk !== 'undefined') {
+            lintrk('track', { conversion_id: eventName });
+        }
+        // Console (debug)
+        console.log('[Track]', eventName, data);
+    }
+
+    
+
+/* =============================================
+   DATA
+============================================= */
+const CORDAS = {
+  estrategia: { name: "Estratégia", color: "#E94560", icon: "◇", questions: [1, 2] },
+  marca: { name: "Marca", color: "#5B8DEF", icon: "△", questions: [6] },
+  cultura: { name: "Cultura", color: "#A855F7", icon: "○", questions: [0, 4] },
+  experiencia: { name: "Experiência", color: "#00D4AA", icon: "□", questions: [3, 5] }
+};
+
+const questions = [
+  { num: "01", dimension: "Clareza", corda: "cultura", text: "Se eu perguntar para 5 pessoas do seu time \"o que essa empresa faz de diferente\", as respostas seriam iguais?", short: "Alinhamento do time", options: [{ label: "Sim. Todo mundo sabe explicar.", value: 3, level: "good" }, { label: "Mais ou menos. Cada um conta de um jeito.", value: 1, level: "mid" }, { label: "Não. Cada um inventa uma história.", value: 0, level: "bad" }] },
+  { num: "02", dimension: "Direção", corda: "estrategia", text: "Sua marca ajuda a tomar decisões difíceis ou só aparece no cartão de visita?", short: "Marca como filtro", options: [{ label: "A marca influencia decisões reais do negócio", value: 3, level: "good" }, { label: "Às vezes pensamos na marca, mas não é o critério principal", value: 1, level: "mid" }, { label: "A marca é assunto do marketing, não da estratégia", value: 0, level: "bad" }] },
+  { num: "03", dimension: "Coragem", corda: "estrategia", text: "No último ano, vocês disseram NÃO para algum cliente ou oportunidade porque não tinha a ver com vocês?", short: "Capacidade de recusa", options: [{ label: "Sim. Foi uma escolha consciente.", value: 3, level: "good" }, { label: "Talvez uma vez, mas não foi por identidade", value: 1, level: "mid" }, { label: "A gente aceita o que aparece", value: 0, level: "bad" }] },
+  { num: "04", dimension: "Valor", corda: "experiencia", text: "Se um concorrente copiasse tudo que você faz e cobrasse 30% menos, seus clientes ficariam?", short: "Substituibilidade", options: [{ label: "A maioria ficaria. Escolhem a gente pelo que representamos.", value: 3, level: "good" }, { label: "Alguns ficariam, mas perderíamos uma parte", value: 1, level: "mid" }, { label: "Perderíamos a maioria", value: 0, level: "bad" }] },
+  { num: "05", dimension: "Cultura", corda: "cultura", text: "O estagiário que entrou mês passado sabe dizer o que a empresa defende?", short: "Marca na cultura", options: [{ label: "Qualquer pessoa do time sabe", value: 3, level: "good" }, { label: "A liderança sabe, o resto nem tanto", value: 1, level: "mid" }, { label: "Isso fica na cabeça do fundador", value: 0, level: "bad" }] },
+  { num: "06", dimension: "Relevância", corda: "experiencia", text: "Se sua empresa sumisse amanhã, quem sentiria falta? E por quê?", short: "Relevância", options: [{ label: "Nossos clientes sentiriam. Não é fácil nos substituir.", value: 3, level: "good" }, { label: "Sentiriam, mas achariam alternativa rápido", value: 1, level: "mid" }, { label: "Provavelmente nem perceberiam", value: 0, level: "bad" }] },
+  { num: "07", dimension: "Futuro", corda: "marca", text: "Sua marca de hoje aguenta o que você quer ser em 3 anos?", short: "Marca e futuro", options: [{ label: "Sim. A essência se mantém, evoluímos a forma.", value: 3, level: "good" }, { label: "Precisa de ajustes, mas a base está boa", value: 1, level: "mid" }, { label: "Precisa mudar. O que nos trouxe aqui não nos leva adiante.", value: 0, level: "bad" }] }
+];
+
+const levels = {
+  critical: { badge: "SILÊNCIO", title: "A marca não está trabalhando pelo negócio", subtitle: "Cada venda depende de esforço individual. A marca não ajuda a vender, não guia decisões e não diferencia." },
+  attention: { badge: "RUÍDO", title: "Tem fundamento, mas a execução oscila", subtitle: "A empresa tem base, mas o mercado sente inconsistência. Há oportunidade clara de destravar crescimento." },
+  solid: { badge: "RITMO", title: "Marca sólida. Pronta para escalar.", subtitle: "Sua marca trabalha a favor do negócio. Ajustes pontuais podem potencializar o que já funciona." }
+};
+
+/* =============================================
+   DEEP DIAGNOSIS ENGINE
+============================================= */
+const dimensionDiag = {
+  estrategia: {
+    0: { status: "Crítico", text: "A marca não entra na sala de decisão. Não filtra oportunidades, não orienta contratações, não define prioridades. Na prática, a empresa opera sem bússola estratégica: cada decisão depende do instinto do momento. Isso significa que o negócio está vulnerável a qualquer mudança de mercado, porque não tem critério para decidir o que fazer e, mais importante, o que não fazer." },
+    1: { status: "Crítico", text: "A marca não entra na sala de decisão. Não filtra oportunidades, não orienta contratações, não define prioridades. Na prática, a empresa opera sem bússola estratégica: cada decisão depende do instinto do momento. Isso significa que o negócio está vulnerável a qualquer mudança de mercado, porque não tem critério para decidir o que fazer e, mais importante, o que não fazer." },
+    2: { status: "Instável", text: "A marca aparece em algumas decisões, mas não é o critério principal. Às vezes influencia, às vezes é ignorada. Essa inconsistência é mais perigosa do que parece: o time não sabe quando a marca vale e quando não vale. Na prática, a estratégia depende de quem está na sala, e muda conforme a pressão do mês." },
+    3: { status: "Instável", text: "Há sinais de que a marca influencia decisões, mas falta coragem para recusar o que não tem a ver. A empresa sabe o que deveria fazer, mas nem sempre faz. Esse meio-termo gera desgaste interno e confusão externa. O mercado não sabe exatamente o que esperar." },
+    4: { status: "Forte", text: "A marca começa a funcionar como filtro real. Influencia decisões e já houve momentos de recusa consciente. O próximo passo é sistematizar isso: transformar o que é intuição do fundador em critério que qualquer líder do time usa sem precisar perguntar." },
+    5: { status: "Forte", text: "A marca guia decisões e filtra oportunidades com consistência. Isso é raro. O risco agora é outro: calcificação. Marcas fortes que não se revisam a cada 2-3 anos perdem relevância lentamente. Tão lentamente que quando percebem, já foi tarde." },
+    6: { status: "Referência", text: "A marca é o critério central de decisão. Oportunidades são recusadas conscientemente, e o time sabe o porquê. Pouquíssimas empresas chegam aqui. O desafio agora é manter. Especialmente durante crescimento, quando a pressão por receita tenta corroer a disciplina estratégica." }
+  },
+  marca: {
+    0: { status: "Crítico", text: "A marca de hoje não aguenta o futuro. Isso significa que vocês estão construindo sobre uma fundação que vai rachar. Cada real investido em comunicação, cada contratação, cada expansão: tudo está apoiado numa marca que não reflete o que a empresa quer ser. Em 2-3 anos, a escolha vai ser entre refazer tudo ou aceitar a estagnação." },
+    1: { status: "Instável", text: "A base existe mas precisa evoluir. A marca atual carrega o passado, e o futuro exige. algo diferente. Isso não significa jogar fora o que foi construído. Significa ter coragem de evoluir a forma sem perder a essência. Empresas que adiam essa decisão acordam um dia e não se reconhecem mais." },
+    2: { status: "Forte", text: "A marca reflete o futuro desejado. A essência se mantém enquanto a forma evolui. Isso é maturidade de marca, e uma vantagem competitiva enorme. Empresas nesse estágio atraem os talentos certos, os clientes certos e as oportunidades certas quase que por gravidade." },
+    3: { status: "Referência", text: "A marca é ponte sólida entre presente e futuro. Isso é o mais difícil de construir e o mais valioso de manter. A empresa não precisa se reinventar a cada ciclo. Evolui com coerência. O desafio é proteger isso durante o crescimento, quando a tentação de diversificar pode diluir o que é forte." }
+  },
+  cultura: {
+    0: { status: "Crítico", text: "A marca vive na cabeça do fundador. Se ele sai da sala, o discurso muda. Se sai da empresa, a identidade vai junto. Cada nova contratação é uma roleta: a pessoa pode absorver a cultura ou criar sua própria versão. Cada saída leva um pedaço da identidade embora. Empresas nesse estágio gastam energia enorme tentando manter coerência, porque o sistema não faz isso sozinho." },
+    1: { status: "Crítico", text: "A marca vive na cabeça do fundador. Se ele sai da sala, o discurso muda. Se sai da empresa, a identidade vai junto. Cada nova contratação é uma roleta: a pessoa pode absorver a cultura ou criar sua própria versão. Cada saída leva um pedaço da identidade embora. Empresas nesse estágio gastam energia enorme tentando manter coerência, porque o sistema não faz isso sozinho." },
+    2: { status: "Instável", text: "A liderança entende a marca, mas o restante do time tem uma versão diluída. Isso gera um efeito cascata: o comercial simplifica demais, o marketing inventa demais, o atendimento improvisa. O cliente recebe três versões diferentes da mesma empresa, e não confia em nenhuma." },
+    3: { status: "Instável", text: "Há alinhamento parcial. Alguns entendem, outros adaptam. A marca não está completamente perdida, mas depende demais de indivíduos específicos. Se o melhor vendedor sai, leva o discurso junto. Se o gestor muda, a área muda. Falta sistema." },
+    4: { status: "Forte", text: "O time consegue articular o que a empresa é e o que defende. Isso já é mais do que a maioria. O desafio é verificar se esse alinhamento é real ou performático: se as pessoas realmente acreditam ou apenas repetem o que ouviram no onboarding." },
+    5: { status: "Forte", text: "Alinhamento cultural sólido. O time não só sabe o discurso. Vive a marca no dia a dia. Decisões são tomadas com base nos princípios, não só nos números. Esse é o estágio em que a marca começa a se proteger sozinha." },
+    6: { status: "Referência", text: "Todo mundo, do estagiário ao CEO, conta a mesma história. Não porque decorou, mas porque entende e acredita. Isso é o ativo mais difícil de construir e o mais difícil de copiar. Concorrentes podem imitar produto, preço e comunicação. Cultura alinhada com marca é inimitável." }
+  },
+  experiencia: {
+    0: { status: "Crítico", text: "O cliente não sente diferença entre vocês e qualquer outro. Se alguém cobrar menos, vai embora. Não é culpa do cliente: a experiência não entrega nada que justifique a lealdade. A marca é invisível no ponto de contato. Todo o investimento em posicionamento e comunicação evapora no momento em que o cliente interage com a empresa de verdade." },
+    1: { status: "Crítico", text: "O cliente não sente diferença entre vocês e qualquer outro. Se alguém cobrar menos, vai embora. Não é culpa do cliente: a experiência não entrega nada que justifique a lealdade. A marca é invisível no ponto de contato. Todo o investimento em posicionamento e comunicação evapora no momento em que o cliente interage com a empresa de verdade." },
+    2: { status: "Instável", text: "Há momentos bons e momentos genéricos. O cliente sente a marca às vezes, mas não sempre. Essa inconsistência é pior do que ser sempre medíocre, porque cria expectativa e depois frustra. O cliente não sabe o que esperar, e incerteza gera desconfiança." },
+    3: { status: "Instável", text: "A experiência tem pontos fortes, mas também gaps visíveis. Alguns clientes ficam, outros vão. A diferença entre eles provavelmente está em qual ponto de contato vivenciaram primeiro. Se tiveram sorte, ficaram. Se não, foram embora sem olhar para trás." },
+    4: { status: "Forte", text: "A experiência começa a refletir a marca de forma consistente. Clientes conseguem explicar por que escolhem vocês, e não é só preço. Isso gera indicações orgânicas e reduz o custo de aquisição. O próximo passo é fazer isso ser inevitável, não acidental." },
+    5: { status: "Forte", text: "Clientes escolhem vocês pelo que representam, não só pelo que fazem. Isso é vantagem competitiva real, porque preço e produto podem ser copiados, mas o que a marca faz o cliente sentir, não. A base para escalar está aqui." },
+    6: { status: "Referência", text: "Os clientes são defensores. Não só compram. Recomendam, defendem, explicam para outros por que vocês são diferentes. Essa é a forma mais cara de marketing. E vocês têm de graça. O desafio é não destruir isso tentando crescer rápido demais." }
+  }
+};
+
+const crossings = {
+  "estrategia-cultura": "A direção existe, mas não chega no time. Na prática: o CEO toma decisões coerentes, o comercial vende de um jeito, o marketing comunica de outro, e o cliente recebe uma terceira versão. O custo invisível: ciclos de venda mais longos, propostas que não refletem o valor real, e talentos que saem porque não entendem o propósito. Quanto mais a empresa cresce, mais esse gap se amplifica.",
+  "cultura-estrategia": "O time tem energia e coesão, mas falta direção clara. Muita vontade, pouca bússola. Na prática, a empresa gasta energia correndo, mas não necessariamente na direção certa. Isso aparece em projetos que começam e morrem, iniciativas que não se conectam, e uma sensação geral de que 'falta algo' apesar do esforço. O que falta é um critério que organize tudo.",
+  "estrategia-experiencia": "As decisões são consistentes, mas o cliente não sente na ponta. A estratégia está na sala de reunião, não no ponto de contato. Isso gera uma empresa que sabe o que é, mas não consegue provar para quem mais importa: o cliente. O resultado: discurso interno forte, percepção externa fraca.",
+  "experiencia-estrategia": "O cliente tem uma boa experiência, mas por acaso, não por design. Depende de indivíduos heroicos, não de um sistema. Se o melhor atendente sai, a qualidade cai. Se o time muda, tudo muda. É uma vantagem real, mas frágil. Sem estratégia por trás, é questão de tempo até a inconsistência aparecer.",
+  "marca-cultura": "A expressão externa está cuidada, mas internamente a marca não vive. Quando o time não sente, o cliente eventualmente percebe. É uma desconexão que começa sutil e cresce até se tornar visível: o site diz uma coisa, o atendimento diz outra, o time diz outra. Três versões da mesma empresa.",
+  "cultura-marca": "O time vive a marca, mas ela não se expressa de forma distintiva. É como ter uma personalidade forte que ninguém vê. A energia interna existe, mas o mercado não enxerga. O efeito: vocês são melhores do que parecem. E isso custa caro em oportunidades perdidas.",
+  "estrategia-marca": "A direção é clara, mas a marca não traduz isso. A estratégia existe, mas é invisível para o mercado. Vocês sabem quem são, mas ninguém mais sabe. Isso força o comercial a fazer o trabalho que a marca deveria fazer: explicar, convencer, provar. Cada venda é um esforço que a marca deveria ter facilitado.",
+  "marca-estrategia": "A marca está bem visualmente, mas não tem direção por trás. Forma sem conteúdo. Isso atrai pelo visual e decepciona pela profundidade. O mercado vê uma empresa polida, mas quando pergunta 'por quê', não recebe resposta consistente.",
+  "cultura-experiencia": "O time está alinhado, mas o cliente não sente a diferença. A cultura é forte internamente, mas não transborda. É como um restaurante onde a equipe se ama, mas o prato é mediano. O cliente não paga pela cultura interna. Paga pelo que sente.",
+  "experiencia-cultura": "O cliente sente algo especial, mas o time não está alinhado. Depende de indivíduos, não do sistema. Cada nova contratação é um risco para a experiência. Cada saída é uma perda que o cliente percebe. A experiência é boa, mas frágil.",
+  "experiencia-marca": "A experiência é boa, mas a marca não acompanha. O cliente sente o valor, mas não consegue explicar para outros. Indicação fica difícil porque falta vocabulário. As pessoas dizem 'é bom' mas não sabem dizer por quê. Isso limita o crescimento orgânico.",
+  "marca-experiencia": "A marca promete, mas a experiência não entrega. Esse é o gap mais perigoso: gera expectativa que frustra. O cliente chega encantado e sai decepcionado. Uma vez que isso acontece, a confiança é quase impossível de recuperar. Cada real investido em marketing amplifica o problema."
+};
+
+const patternsData = {
+  foguete: { name: "Crescimento sem bússola", signs: ["O time cresceu rápido e cada pessoa nova absorveu uma versão diferente da empresa", "O fundador sente que 'perdeu o controle' da narrativa", "Cada área conta uma história diferente para o mercado", "Contratar ficou mais difícil. As pessoas certas não se identificam"], desc: "A boa notícia: a direção existe na liderança. O desafio: fazê-la chegar em todo mundo antes que o crescimento dilua o que torna vocês únicos." },
+  fundador: { name: "Conhecimento preso na liderança", signs: ["O fundador é a marca. Quando ele apresenta, fecha. Quando o time apresenta, não.", "Pessoas novas demoram meses para 'pegar o jeito'", "O discurso do LinkedIn do CEO é diferente do site da empresa", "Existe uma energia interna que o mercado não enxerga"], desc: "A força está lá. Só precisa sair da cabeça do fundador e virar sistema. Enquanto não virar, cada contratação é aposta e cada saída é perda." },
+  ferida: { name: "Desconexão entre promessa e entrega", signs: ["A empresa funciona, mas ninguém sabe explicar por que é diferente", "Clientes ficam pelo preço ou pela conveniência, não pela marca", "O comercial improvisa o discurso a cada reunião", "Existe uma sensação de que 'falta algo' que ninguém consegue nomear"], desc: "A prioridade é voltar ao básico: definir quem vocês são antes de comunicar qualquer coisa. Sem isso, qualquer investimento em marketing é construir sobre areia." },
+  fachada: { name: "Marca bonita, experiência fraca", signs: ["O site e as redes sociais estão bonitos, mas o cliente não vive isso", "Existe um gap entre o que a marca diz e o que o cliente sente", "O time de marketing está desconectado da operação", "NPS ou satisfação não acompanha a qualidade visual da marca"], desc: "Esse é o gap mais caro. Cada real em comunicação amplifica a frustração do cliente, porque aumenta a expectativa sem melhorar a entrega." },
+  invisivel: { name: "Marca invisível", signs: ["Cada venda é um esforço isolado, começando do zero", "O preço é sempre o critério final de decisão do cliente", "Não existe indicação orgânica consistente", "O time não consegue explicar o que diferencia a empresa"], desc: "A marca deveria ser um ativo que vende sozinho. Hoje, é decoração. O custo disso: esforço comercial 2-3x maior para o mesmo resultado." }
+};
+
+const costInsights = {
+  critical: "Empresas com marca em silêncio gastam, em média, 2-3x mais em esforço comercial para fechar o mesmo cliente. Cada venda começa do zero. Cada proposta precisa convencer da relevância antes de convencer do valor. O ciclo de venda se alonga, o custo de aquisição sobe, e a margem é comprimida pela pressão de preço. Porque sem marca, a única moeda é o desconto.",
+  attention: "Marcas em ruído não perdem dinheiro de forma óbvia. Perdem de forma invisível. A proposta que não fecha porque o cliente 'não entendeu'. O talento que não aceita porque 'não sentiu segurança'. A indicação que não vem porque o cliente gosta mas não sabe explicar por quê. Esses são os custos que não aparecem em nenhum relatório financeiro, mas corroem o potencial mês após mês.",
+  solid: "Sua marca já é um ativo. Mas ativo parado desvaloriza. Marcas fortes que não se revisam perdem relevância lentamente. Tão lentamente que quando percebem, o mercado já mudou ao redor. O custo aqui não é o do presente. É o da oportunidade perdida: o que vocês poderiam estar capturando se a marca estivesse operando no máximo potencial."
+};
+
+function getCordaScores(answers) {
+  const scores = {};
+  Object.entries(CORDAS).forEach(([key, corda]) => {
+    const pts = corda.questions.reduce((sum, qi) => sum + (answers[qi]?.value || 0), 0);
+    const max = corda.questions.length * 3;
+    scores[key] = { pts, max, pct: Math.round((pts / max) * 100) };
+  });
+  return scores;
+}
+
+function getDiagnosis(cordaScores, totalScore) {
+  let weakest = null, strongest = null, lowestPct = 101, highestPct = -1;
+  Object.entries(cordaScores).forEach(([key, s]) => {
+    if (s.pct < lowestPct) { lowestPct = s.pct; weakest = key; }
+    if (s.pct > highestPct) { highestPct = s.pct; strongest = key; }
+  });
+  const { estrategia, marca, cultura, experiencia } = cordaScores;
+  let pattern = null;
+  if (estrategia.pct >= 67 && cultura.pct <= 33) pattern = "foguete";
+  else if (cultura.pct >= 67 && marca.pct <= 33) pattern = "fundador";
+  else if (experiencia.pct <= 33 && estrategia.pct <= 33) pattern = "ferida";
+  else if (marca.pct >= 67 && experiencia.pct <= 33) pattern = "fachada";
+  else if (estrategia.pct <= 50 && cultura.pct <= 50 && experiencia.pct <= 50) pattern = "invisivel";
+  const crossKey = `${strongest}-${weakest}`;
+  const crossText = crossings[crossKey] || `Sua dimensão mais forte é ${CORDAS[strongest].name} e a mais fraca é ${CORDAS[weakest].name}. Essa combinação indica oportunidade clara de evolução.`;
+  return { weakest, strongest, pattern, crossText };
+}
+
+/* =============================================
+   COMPONENTS
+============================================= */
+function CordaBar({ name, color, pts, max, pct, delay, blurred }) {
+  const [width, setWidth] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setWidth(pct), 300 + delay); return () => clearTimeout(t); }, [pct, delay]);
+  const status = pct >= 67 ? "Forte" : pct >= 34 ? "Atenção" : "Crítico";
+  const statusColor = pct >= 67 ? "#00D4AA" : pct >= 34 ? "#FFAA00" : "#FF4757";
+  return (
+    <div style={{ marginBottom: 20, opacity: blurred ? 0.35 : 1, filter: blurred ? "blur(3px)" : "none", transition: "all 0.6s ease" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
+          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#b0b0b0" }}>{name}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontSize: "0.75rem", color: statusColor, fontWeight: 600 }}>{status}</span>
+          <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#f0f0f0", fontVariantNumeric: "tabular-nums", minWidth: 36, textAlign: "right" }}>{pts}/{max}</span>
+        </div>
+      </div>
+      <div style={{ width: "100%", height: 6, background: "#1c1c1c", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${width}%`, background: color, borderRadius: 10, transition: "width 1s cubic-bezier(0.16,1,0.3,1)" }} />
+      </div>
+    </div>
+  );
+}
+
+function DimensionCard({ cordaKey, pts, max, color, icon }) {
+  const diag = dimensionDiag[cordaKey][pts];
+  if (!diag) return null;
+  const statusColor = diag.status === "Referência" ? "#00D4AA" : diag.status === "Forte" ? "#00D4AA" : diag.status === "Instável" ? "#FFAA00" : "#FF4757";
+  return (
+    <div style={{ padding: 24, background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 16, borderLeft: `3px solid ${color}`, marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ color, fontSize: "0.9rem" }}>{icon}</span>
+          <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#d0d0d0" }}>{CORDAS[cordaKey].name}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: "0.7rem", fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "0.1em" }}>{diag.status}</span>
+          <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#f0f0f0" }}>{pts}/{max}</span>
+        </div>
+      </div>
+      <p style={{ fontSize: "0.9rem", color: "#999", lineHeight: 1.8 }}>{diag.text}</p>
+    </div>
+  );
+}
+
+/* =============================================
+   MAIN
+============================================= */
+function DiagnosticoV4() {
+  const [screen, setScreen] = useState("intro");
+  const [currentQ, setCurrentQ] = useState(0);
+  const [answers, setAnswers] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
+  const [animating, setAnimating] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [sending, setSending] = useState(false);
+  const [aiInsight, setAiInsight] = useState(null);
+  const [aiReady, setAiReady] = useState(false);
+  const [siteAnalyzed, setSiteAnalyzed] = useState(false);
+
+  const WEBHOOK_URL = "https://hook.us2.make.com/x4gnn9ur5d9wf2h4gq4ozywak238gu9v";
+  const OPENROUTER_KEY = "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";
+
+  const extractDomain = (email) => {
+    if (!email || !email.includes("@")) return null;
+    const domain = email.split("@")[1].toLowerCase();
+    const free = ["gmail.com","hotmail.com","outlook.com","yahoo.com","icloud.com","uol.com.br","bol.com.br","terra.com.br","live.com","me.com","protonmail.com","zoho.com"];
+    return free.includes(domain) ? null : domain;
+  };
+
+  const fetchSiteContent = async (domain) => {
+    const targetUrl = "https://" + domain;
+    
+    const proxies = [
+      (url) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
+      (url) => "https://corsproxy.io/?" + encodeURIComponent(url),
+      (url) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url)
+    ];
+    
+    let rawHtml = null;
+    
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        const proxyUrl = proxies[i](targetUrl);
+        console.log("[Enredo] Tentando proxy " + (i+1) + "...");
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        
+        const resp = await fetch(proxyUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!resp.ok) { console.warn("[Enredo] Proxy " + (i+1) + " status " + resp.status); continue; }
+        
+        rawHtml = await resp.text();
+        
+        if (rawHtml && rawHtml.length > 200) {
+          console.log("[Enredo] Site capturado via proxy " + (i+1) + " (" + rawHtml.length + " chars)");
+          break;
+        } else { rawHtml = null; }
+      } catch (err) {
+        console.warn("[Enredo] Proxy " + (i+1) + " falhou:", err.message || err);
+      }
+    }
+    
+    if (!rawHtml) { console.warn("[Enredo] Nenhum proxy acessou " + domain); return null; }
+    
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(rawHtml, "text/html");
+      
+      const titleEl = doc.querySelector("title");
+      const title = titleEl ? titleEl.textContent.trim() : "";
+      const metaDesc = doc.querySelector('meta[name="description"]');
+      const ogDesc = doc.querySelector('meta[property="og:description"]');
+      const description = (metaDesc ? metaDesc.getAttribute("content") : "") || (ogDesc ? ogDesc.getAttribute("content") : "") || "";
+      
+      doc.querySelectorAll("script, style, noscript, iframe, svg, link, meta").forEach(function(el) { el.remove(); });
+      
+      let text = doc.body ? doc.body.textContent : "";
+      text = text.replace(/[ \t]+/g, " ").replace(/\n\s*\n/g, "\n").trim();
+      const lines = text.split("\n").filter(function(line) { return line.trim().length > 15; });
+      text = lines.join("\n");
+      
+      let extract = "";
+      if (title) extract += "TITULO DO SITE: " + title + "\n";
+      if (description) extract += "META DESCRICAO: " + description + "\n";
+      if (text) extract += "\nCONTEUDO VISIVEL:\n" + text.substring(0, 2500);
+      
+      const result = extract.trim();
+      console.log("[Enredo] Extraido (" + result.length + " chars). Preview: " + result.substring(0, 120));
+      return result.length > 50 ? result : null;
+    } catch (err) { console.error("[Enredo] Erro ao parsear:", err); return null; }
+  };
+
+  const generateAIDiagnosis = async () => {
+    console.log("[Enredo] Iniciando diagnostico IA...");
+    const cs = getCordaScores(answers);
+    const lk = totalScore <= 7 ? "critical" : totalScore <= 14 ? "attention" : "solid";
+    const diag = getDiagnosis(cs, totalScore);
+    const domain = extractDomain(form.email);
+    console.log("[Enredo] Dominio:", domain || "(pessoal)");
+
+    const answersText = answers.map((a, i) => 
+      (i+1) + ". " + questions[i].text + "\n   Resposta: " + a.label + " (" + a.value + " pts) | " + CORDAS[questions[i].corda].name
+    ).join("\n");
+
+    const scoresText = Object.entries(cs).map(([key, s]) => 
+      CORDAS[key].name + ": " + s.pts + "/" + s.max + " (" + s.pct + "%)"
+    ).join(" | ");
+
+    const patternName = diag.pattern ? (patternsData[diag.pattern] || {}).name || "Indefinido" : "Nenhum padrao claro";
+
+    let siteContent = null;
+    if (domain) {
+      console.log("[Enredo] Buscando site " + domain + "...");
+      siteContent = await fetchSiteContent(domain);
+      if (siteContent) { console.log("[Enredo] Site OK. Cruzando."); setSiteAnalyzed(true); }
+      else { console.log("[Enredo] Site inacessivel. Apenas respostas."); }
+    }
+
+    let siteBlock = "";
+    let bloco2 = "";
+    
+    if (siteContent) {
+      siteBlock = "\n\n===== CONTEUDO REAL DO SITE " + domain + " =====\n" + siteContent + "\n===== FIM =====\n\nIMPORTANTE: O conteudo acima foi extraido diretamente do site. Use-o para analise REAL, citando trechos concretos.";
+      bloco2 = 'BLOCO 2 \u2014 "O que o site comunica vs. o que o diagnostico revela" (OBRIGATORIO: cite pelo menos 2 trechos ou frases concretas do conteudo do site acima e confronte com os dados do diagnostico. Aponte contradicoes, gaps e confirmacoes. O CEO precisa reconhecer o proprio site.)';
+    } else if (domain) {
+      siteBlock = "\n\nNota: o site " + domain + " nao pode ser acessado. Foque nas respostas.";
+      bloco2 = 'BLOCO 2 \u2014 "O padrao" (o que esse perfil de scores costuma significar na pratica)';
+    } else {
+      bloco2 = 'BLOCO 2 \u2014 "O padrao" (o que esse perfil de scores costuma significar na pratica)';
+    }
+
+    const prompt = "Voce e um estrategista senior de marca da Enredo, a The Brand Innovation Company. Nao e vendedor. Ve o que outros evitam ver.\n\nUm CEO completou um diagnostico de marca com 7 perguntas:\n\n- Nome: " + form.name + "\n- Empresa: " + (domain || "(email pessoal)") + "\n- Score: " + totalScore + "/21\n- Nivel: " + levels[lk].badge + "\n- Dimensoes: " + scoresText + "\n- Mais forte: " + CORDAS[diag.strongest].name + "\n- Mais fraca: " + CORDAS[diag.weakest].name + "\n- Padrao: " + patternName + "\n\nRespostas:\n" + answersText + siteBlock + "\n\nGERE DIAGNOSTICO EM 3 BLOCOS (use <strong> para 2-3 frases-chave):\n\nBLOCO 1 \u2014 \"A leitura\" (o que os dados revelam sobre essa empresa. Nao seja generico. Conecte os pontos.)\n" + bloco2 + "\nBLOCO 3 \u2014 \"O que nao aparece em 7 perguntas\" (gancho provocativo. Termine com frase curta que faca o CEO querer conversar.)\n\nREGRAS:\n- Tom direto, estrategico.\n- NUNCA bullet points ou listas.\n- Max 350 palavras.\n- Separe blocos com linha em branco.\n- <strong> para 2-3 destaques.\n- Fale de negocio, nao de branding.\n- Titulo em negrito na primeira linha de cada bloco.";
+
+    console.log("[Enredo] Prompt (" + prompt.length + " chars). Chamando OpenRouter...");
+
+    try {
+      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          "Authorization": "Bearer " + OPENROUTER_KEY,
+          "HTTP-Referer": window.location.href || "https://7perguntas.enredo.com.br",
+          "X-Title": "Enredo Diagnostico"
+        },
+        body: JSON.stringify({ 
+          model: "anthropic/claude-3.5-sonnet", 
+          max_tokens: 900, 
+          messages: [{ role: "user", content: prompt }] 
+        })
+      });
+      
+      const data = await resp.json();
+      console.log("[Enredo] OpenRouter resposta:", JSON.stringify(data).substring(0, 300));
+      
+      if (data.error) {
+        console.error("[Enredo] API erro:", data.error);
+      } else if (data.choices && data.choices[0] && data.choices[0].message) {
+        const raw = data.choices[0].message.content;
+        console.log("[Enredo] IA gerou " + raw.length + " chars");
+        setAiInsight("<p>" + raw.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br>") + "</p>");
+      } else {
+        console.error("[Enredo] Resposta inesperada:", JSON.stringify(data));
+      }
+    } catch (err) { 
+      console.error("[Enredo] OpenRouter erro:", err); 
+    }
+    setAiReady(true);
+  };
+
+  const sendToMake = async () => {
+    const cs = getCordaScores(answers);
+    const lk = totalScore <= 7 ? "critical" : totalScore <= 14 ? "attention" : "solid";
+    const diag = getDiagnosis(cs, totalScore);
+    const payload = {
+      nome: form.name,
+      email: form.email,
+      whatsapp: form.whatsapp,
+      score_total: totalScore,
+      score_max: 21,
+      nivel: levels[lk].badge,
+      nivel_key: lk,
+      estrategia_pts: cs.estrategia.pts,
+      estrategia_max: cs.estrategia.max,
+      estrategia_pct: cs.estrategia.pct,
+      marca_pts: cs.marca.pts,
+      marca_max: cs.marca.max,
+      marca_pct: cs.marca.pct,
+      cultura_pts: cs.cultura.pts,
+      cultura_max: cs.cultura.max,
+      cultura_pct: cs.cultura.pct,
+      experiencia_pts: cs.experiencia.pts,
+      experiencia_max: cs.experiencia.max,
+      experiencia_pct: cs.experiencia.pct,
+      dimensao_mais_forte: CORDAS[diag.strongest].name,
+      dimensao_mais_fraca: CORDAS[diag.weakest].name,
+      padrao: diag.pattern ? patternsData[diag.pattern]?.name || "" : "",
+      respostas: answers.map((a, i) => ({
+        pergunta: questions[i].short,
+        dimensao: questions[i].dimension,
+        corda: questions[i].corda,
+        resposta: a.label,
+        pontos: a.value
+      })),
+      respostas_resumo: answers.map((a, i) => `P${i+1} (${a.dimension}): ${a.label} [${a.value}pts]`).join(" | "),
+      data: new Date().toISOString(),
+      origem: window.location.href || "diagnostico-enredo"
+    };
+
+    try {
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.error("Webhook error:", err);
+    }
+  };
+
+  const totalScore = answers.reduce((s, a) => s + (a?.value || 0), 0);
+  const levelKey = totalScore <= 7 ? "critical" : totalScore <= 14 ? "attention" : "solid";
+  const level = levels[levelKey];
+  const cordaScores = getCordaScores(answers);
+  const diagnosis = answers.length === 7 ? getDiagnosis(cordaScores, totalScore) : null;
+  const badgeColor = levelKey === "critical" ? "#FF4757" : levelKey === "attention" ? "#FFAA00" : "#00D4AA";
+
+  useEffect(() => {
+    if (screen === "loading") {
+      // Start AI generation (includes site fetch)
+      generateAIDiagnosis();
+      
+      const timers = [
+        setTimeout(() => setLoadingStep(1), 600),
+        setTimeout(() => setLoadingStep(2), 2200),
+        setTimeout(() => setLoadingStep(3), 5000),
+        setTimeout(() => setLoadingStep(4), 8000)
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [screen]);
+
+  // When AI finishes + loading animated enough, show result
+  useEffect(() => {
+    if (aiReady && loadingStep >= 4) {
+      setTimeout(() => { trackEvent('FullResult', { score: totalScore, level: levelKey }); setScreen("full"); }, 800);
+    }
+  }, [aiReady, loadingStep]);
+
+  const selectOption = (i, opt) => {
+    if (animating) return;
+    setSelected(i);
+    const newAns = [...answers];
+    newAns[currentQ] = { ...opt, question: questions[currentQ].short, dimension: questions[currentQ].dimension, corda: questions[currentQ].corda };
+    setAnswers(newAns);
+    setTimeout(() => { setAnimating(true); setTimeout(() => { if (currentQ < 6) { setCurrentQ(currentQ + 1); setSelected(null); } else { trackEvent('QuizComplete', { score: totalScore }); setScreen("partial"); } setAnimating(false); }, 200); }, 400);
+  };
+
+  const serif = "'Playfair Display', Georgia, serif";
+  const lbl = { fontSize: "0.7rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#555", fontWeight: 500 };
+  const card = { padding: 24, background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 16 };
+  const btn = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "18px 40px", background: "#00D4AA", color: "#000", border: "none", borderRadius: 60, fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" };
+  const stepMap = { intro: "", quiz: `${currentQ+1} de 7`, partial: "Resultado", capture: "Desbloquear", loading: "Analisando...", full: "Diagnóstico" };
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#000", color: "#888", fontFamily: "'DM Sans', -apple-system, sans-serif", WebkitFontSmoothing: "antialiased" }}>
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "20px 28px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(to bottom, rgba(0,0,0,0.95), transparent)" }}>
+        <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADWA3IDASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAcIBgkCBAUDAf/EAFsQAAEDAwIDBAUDCxEDCgcAAAEAAgMEBQYHEQgSIRMxQVEUImFxgTJCdRUXGDc4UleCkqGzCRYjMzZTYnJzdJGVsbK00dNDVpQkJWN2g5OiwdLiNDU5RFRVhP/EABkBAQADAQEAAAAAAAAAAAAAAAADBAUCBv/EACYRAQABAwQBBAIDAAAAAAAAAAABAgMEBRESMSEGMkFhcZEUoeH/2gAMAwEAAhEDEQA/AKZIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIv0Ak7DqUH4i/XAtOzgQfIr8QEREBERARcgx5G4Y7bv32XFAREQEREBERARF+ta53yWk+4IPxF+ua5p2cCD5EL8QEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQFN+kup2keM4TTWjLdI6bJLrHJI6Sve5gL2ucS0dQT0HRQgiC8GW3nQvHtGsY1Kl0Utc9Nf53Qx0bWxh8JHP1Lttj+1nw8VDdwznTvMdVtOI8G07gxF9LkNMap0bmn0gOni5QeUDu2d/Sve1l+4f0q/n8v8AbUKENHPtvYZ9P0P+IYgzrjXAHExlgA2H/JP8JCoaV1eJfVPGNLdX7kLBhFlvmVV7Iai63C7MMrYW9kxkcMbRty+oxrid/nePhHvENaMSzbQ/HtbsbsFPj1wqq02+7UdMAIXyeuOYAADfdnft1Dhv1CCtiKyukmJ4zp/olDq3kuIuzC+XepdT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TkNzx63Y9cLxV1NpthcaKkkfvHBzd/KPDfdeMiCy2WT1NHwDYBV0k0tPPFlMr4pYnFrmODqzYgjqD7QocvWqupN6s5tF1zm/1dAW8roJK15a9vk7r6w9+6xeS5XGS2R2ySvqn0ET+eOmdM4xMd19YM32B6nrt4ldRAWWYpqTn+K0BoMczC9WykO/7BBVubGN+/Zu+w+CxNEGTU+f5tAby6PKbtzXyHsLo51S5zquPZzeV5O5I2e4beRK6dhyvI7DabrabNeayhobvEIbhBDJysqWAOAa8eI2e4fErxUQfegq6mgr6evop3wVVNK2aGVh2cx7SC1wPmCAV3Mnv96ye9TXrILlUXK4zholqah3M94a0NbufYAB8F5iILSYuZNF+EOvyB29Nk+oEgp6PryyRUnKQHjx+QXuB/6RirBSVFRR1UVXSTyQVELxJFLG4tcxwO4II6gg+K+9fdbncIKeCvuNZVxUzeWBk07ntiHQbNBPqjoO7yC6aCVtP7/eswyy85PlNZUZTebJYZqu2wXE+kCSVjmNG7Hbhwja98vLtsTH1BG6lrVm30FzobvajfK7KrNTWevqZLnXSxzutNfTbGONkrWMMYkJEZi25HCRhaSe6rdlulxst0p7paa2ehrqZ/PDPC8tew+whe9k2oWXZFbDa7ndIxQveJJaeko4aSOZ47nSNhY0SEeBdvsgxVERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQf/2Q==" alt="Enredo" style={{ height: 80, opacity: 0.95 }} />
+        <div style={{ fontSize: "0.7rem", color: "#555", letterSpacing: "0.1em", textTransform: "uppercase" }}>{stepMap[screen] || ""}</div>
+      </div>
+
+      <div style={{ maxWidth: 640, margin: "0 auto", padding: "100px 24px 60px" }}>
+
+        {/* INTRO */}
+        {screen === "intro" && (
+          <div style={{ animation: "fadeIn 0.6s ease" }}>
+
+            {/* HERO */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "#141414", border: "1px solid #1e1e1e", borderRadius: 100, fontSize: "0.7rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#888", marginBottom: 40 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00D4AA", display: "inline-block", animation: "pulse 2s infinite" }} />
+              Diagnóstico gratuito
+            </div>
+            <h1 style={{ fontFamily: serif, fontSize: "clamp(2rem, 6vw, 3rem)", fontWeight: 400, lineHeight: 1.15, color: "#f0f0f0", marginBottom: 24 }}>Sua marca está <em style={{ fontStyle: "italic", color: "#00D4AA" }}>trabalhando a favor</em> do crescimento?</h1>
+            <p style={{ fontSize: "1.05rem", color: "#888", lineHeight: 1.7, marginBottom: 16, maxWidth: 520 }}>7 perguntas que revelam se sua marca está construindo valor ou apenas ocupando espaço. Resultado imediato com análise em 4 dimensões e leitura personalizada por inteligência artificial.</p>
+            <div style={{ display: "flex", gap: 28, marginBottom: 40, fontSize: "0.75rem", color: "#444", flexWrap: "wrap", letterSpacing: "0.04em" }}><span style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#333", display: "inline-block" }} />3 minutos</span><span style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#333", display: "inline-block" }} />4 dimensões de análise</span><span style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#333", display: "inline-block" }} />Dados protegidos</span></div>
+            <button onClick={() => { trackEvent('QuizStart'); setScreen("quiz"); setCurrentQ(0); setAnswers([]); }} style={btn}>Começar diagnóstico →</button>
+
+            {/* SEPARATOR */}
+            <div style={{ width: 40, height: 1, background: "#1e1e1e", margin: "64px 0 56px" }} />
+
+            {/* ABOUT */}
+            <div style={{ marginBottom: 56 }}>
+              <p style={{ fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#333", fontWeight: 600, marginBottom: 24 }}>Sobre a Enredo</p>
+              <p style={{ fontFamily: serif, fontSize: "1.25rem", color: "#b0b0b0", lineHeight: 1.6, marginBottom: 20 }}>Todo negócio tem um ponto de virada em sua história. <span style={{ color: "#f0f0f0" }}>Prazer, Enredo.</span></p>
+              <p style={{ fontSize: "0.92rem", color: "#666", lineHeight: 1.85, marginBottom: 14 }}>Somos uma empresa de inovação para marcas premiada globalmente. Ajudamos organizações a atravessar momentos críticos de crescimento, realinhando direção estratégica, cultura, marca e experiência quando o próximo passo não é óbvio.</p>
+              <p style={{ fontSize: "0.88rem", color: "#555", lineHeight: 1.85, fontStyle: "italic" }}>Provocamos nossos clientes fazendo perguntas que ninguém faz, nos envolvendo como poucos se envolvem e encontrando oportunidades onde ninguém vê.</p>
+            </div>
+
+            {/* NUMBERS */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1, background: "#1a1a1a", borderRadius: 16, overflow: "hidden", marginBottom: 56 }}>
+              {[
+                { num: "13", sub: "anos de história" },
+                { num: "+330", sub: "projetos" },
+                { num: "62", sub: "prêmios" },
+                { num: "87", sub: "NPS 2025" }
+              ].map((item, i) => (
+                <div key={i} style={{ padding: "24px 8px", background: "#0a0a0a", textAlign: "center" }}>
+                  <div style={{ fontFamily: serif, fontSize: "clamp(1.3rem, 4vw, 1.8rem)", fontWeight: 600, color: "#f0f0f0", lineHeight: 1, marginBottom: 6 }}>{item.num}</div>
+                  <div style={{ fontSize: "0.6rem", color: "#444", letterSpacing: "0.05em", lineHeight: 1.3 }}>{item.sub}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* CASES */}
+            <div style={{ marginBottom: 56 }}>
+              <p style={{ fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#333", fontWeight: 600, marginBottom: 24 }}>Como ajudamos a transformar negócios</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/Magalu_11zon.png", brand: "Magalu Cloud", desc: "A primeira Cloud de escala global do Brasil", tags: "Tecnologia" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/capa2.jpg", brand: "Iconic", desc: "Marca líder em lubrificantes no Brasil", tags: "Indústria" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/Porto_11zon.png", brand: "Loja Porto", desc: "Fortalecendo cultura através da arquitetura", tags: "Arquitetura" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/capa-enredo-shinagawa.jpg", brand: "Shinagawa", desc: "Transformando a percepção global de refratários", tags: "Indústria" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/pitstop.jpg", brand: "Pit Stop", desc: "Expandindo o franchising da Ambev", tags: "Varejo" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/capa-city-enredo.jpg", brand: "City", desc: "O futuro de uma marca líder no mercado imobiliário de alto padrão", tags: "Serviços" }
+                ].map((c, i) => (
+                  <a key={i} href={"https://enredo.com.br/cases/"} target="_blank" rel="noopener noreferrer" style={{ display: "block", borderRadius: 12, overflow: "hidden", background: "#0a0a0a", border: "1px solid #151515", textDecoration: "none" }}>
+                    <div style={{ width: "100%", paddingTop: "65%", backgroundImage: "url(" + c.img + ")", backgroundSize: "cover", backgroundPosition: "center" }} />
+                    <div style={{ padding: "12px 14px 14px" }}>
+                      <div style={{ fontSize: "0.58rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#444", marginBottom: 4 }}>{c.tags}</div>
+                      <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#b0b0b0", marginBottom: 4 }}>{c.brand}</div>
+                      <div style={{ fontSize: "0.7rem", color: "#555", lineHeight: 1.5 }}>{c.desc}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div style={{ textAlign: "center", marginTop: 16 }}>
+                <a href="https://enredo.com.br/cases/" target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.72rem", color: "#444", textDecoration: "none", borderBottom: "1px solid #2a2a2a", paddingBottom: 2 }}>Ver todos os cases</a>
+              </div>
+            </div>
+
+            {/* CLIENT LOGOS */}
+            <div style={{ marginBottom: 56 }}>
+              <p style={{ fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#333", fontWeight: 600, marginBottom: 24 }}>Marcas que fizeram história com a gente</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 1, background: "#141414", borderRadius: 12, overflow: "hidden" }}>
+                {[
+                  { name: "Ambev", logo: "https://enredo.com.br/wp-content/uploads/2023/12/AMBEV-PRETO.png" },
+                  { name: "Algar", logo: "https://enredo.com.br/wp-content/uploads/2023/12/Logo-Algar.-negativa.png" },
+                  { name: "Apex Brasil", logo: "https://enredo.com.br/wp-content/uploads/2023/12/APEX-BRASIL-PRETO@3x.png" },
+                  { name: "SESI", logo: "https://enredo.com.br/wp-content/uploads/2023/12/sesi-logo-preto.png" },
+                  { name: "City", logo: "https://enredo.com.br/wp-content/uploads/2023/12/Logo-City-negativa.png" },
+                  { name: "Adão Imóveis", logo: "https://enredo.com.br/wp-content/uploads/2023/12/LOGO-ADAO-NEGATIVO.png" },
+                  { name: "Shinagawa", logo: "https://enredo.com.br/wp-content/uploads/2023/12/SuperNeat-copia-2.png" },
+                  { name: "Soluti", logo: "https://enredo.com.br/wp-content/uploads/2023/12/Logotipo-2.png" },
+                  { name: "Zé Delivery", logo: "https://enredo.com.br/wp-content/uploads/2023/12/ze-delivery-logo.png" },
+                  { name: "Grupo Salta", logo: "https://enredo.com.br/wp-content/uploads/2023/12/logo-salta-neg.png" },
+                  { name: "Grupo Natureza", logo: "https://enredo.com.br/wp-content/uploads/2023/12/LOGO-GRUPO-NATUREZA-NEGATIVO.png" },
+                  { name: "Casa do Pica-Pau", logo: "https://enredo.com.br/wp-content/uploads/2024/09/casa-pica-pau-logo-1.png" },
+                  { name: "Agrex", logo: "https://enredo.com.br/wp-content/uploads/2023/12/Logo-Agrex-negativo.png" },
+                  { name: "União Química", logo: "https://enredo.com.br/wp-content/uploads/2024/09/unicao-quimica-logo.png" },
+                  { name: "TXC", logo: "https://enredo.com.br/wp-content/uploads/2024/09/txc-logo.png" }
+                ].map((cl, i) => (
+                  <div key={i} style={{ background: "#0a0a0a", padding: "16px 10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <img src={cl.logo} alt={cl.name} style={{ maxHeight: 22, maxWidth: "80%", objectFit: "contain", opacity: 0.5, filter: "brightness(1.5) grayscale(1)" }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RECOGNITION */}
+            <div style={{ marginBottom: 56 }}>
+              <p style={{ fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "#333", fontWeight: 600, marginBottom: 24 }}>Reconhecimento</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {[
+                  { img: "https://enredo.com.br/wp-content/uploads/2024/05/if-design-enredo-topo.jpg", title: "iF Design Award, Alemanha" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/11/header-fepi-ouro.jpg", title: "FePI Ouro e Prata, Buenos Aires" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2023/12/ciro-rocha-enredo-destaque-do-ano-bda.jpg", title: "Ciro Rocha, profissional destaque no Prêmio Brasileiro de Design" },
+                  { img: "https://enredo.com.br/wp-content/uploads/2025/01/NRF-PALCO.jpg", title: "NRF 2025, Nova York" }
+                ].map((r, i) => (
+                  <div key={i} style={{ borderRadius: 12, overflow: "hidden", background: "#0a0a0a", border: "1px solid #151515" }}>
+                    <div style={{ width: "100%", paddingTop: "55%", backgroundImage: "url(" + r.img + ")", backgroundSize: "cover", backgroundPosition: "center" }} />
+                    <div style={{ padding: "10px 14px 12px" }}>
+                      <div style={{ fontSize: "0.72rem", color: "#666", lineHeight: 1.5 }}>{r.title}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SECOND CTA */}
+            <div style={{ padding: "36px 24px", background: "#0a0a0a", border: "1px solid #1a1a1a", borderRadius: 16, textAlign: "center", marginBottom: 48 }}>
+              <p style={{ fontFamily: serif, fontSize: "1.1rem", color: "#888", lineHeight: 1.6, marginBottom: 8 }}>Este diagnóstico usa a mesma lógica que aplicamos nos nossos projetos de inovação de marca.</p>
+              <p style={{ fontSize: "0.85rem", color: "#555", marginBottom: 24, lineHeight: 1.6 }}>São 7 perguntas que nenhum CEO deveria deixar sem resposta.</p>
+              <button onClick={() => { trackEvent('QuizStart'); setScreen("quiz"); setCurrentQ(0); setAnswers([]); }} style={{ ...btn, fontSize: "0.85rem" }}>Começar diagnóstico →</button>
+            </div>
+
+            {/* OFFICES */}
+            <div style={{ display: "flex", gap: 32, flexWrap: "wrap", paddingBottom: 20 }}>
+              <div>
+                <p style={{ fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#2a2a2a", fontWeight: 600, marginBottom: 6 }}>São Paulo</p>
+                <p style={{ fontSize: "0.68rem", color: "#333", lineHeight: 1.6 }}>Alameda Santos, 200, 5º andar</p>
+              </div>
+              <div>
+                <p style={{ fontSize: "0.6rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#2a2a2a", fontWeight: 600, marginBottom: 6 }}>Goiânia</p>
+                <p style={{ fontSize: "0.68rem", color: "#333", lineHeight: 1.6 }}>Flamboyant Park Business, 17º andar</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* QUIZ */}
+        {screen === "quiz" && (
+          <div>
+            <div style={{ marginBottom: 48 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}><span style={lbl}>Progresso</span><span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#b0b0b0" }}>{currentQ+1} / 7</span></div>
+              <div style={{ width: "100%", height: 3, background: "#1c1c1c", borderRadius: 10, overflow: "hidden" }}><div style={{ height: "100%", width: `${((currentQ+1)/7)*100}%`, background: "#00D4AA", borderRadius: 10, transition: "width 0.6s cubic-bezier(0.16,1,0.3,1)" }} /></div>
+            </div>
+            <div style={{ opacity: animating ? 0 : 1, transform: animating ? "translateY(-8px)" : "translateY(0)", transition: "all 0.2s ease" }}>
+              <div style={{ fontSize: "0.7rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#00D4AA", marginBottom: 16, fontWeight: 500 }}>PERGUNTA {questions[currentQ].num} · {questions[currentQ].dimension.toUpperCase()}</div>
+              <div style={{ fontFamily: serif, fontSize: "clamp(1.3rem, 3.5vw, 1.65rem)", fontWeight: 400, lineHeight: 1.35, color: "#f0f0f0", marginBottom: 40 }}>{questions[currentQ].text}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {questions[currentQ].options.map((opt, i) => {
+                  const isSel = selected === i;
+                  return (<div key={i} onClick={() => selectOption(i, opt)} style={{ display: "flex", alignItems: "center", gap: 16, padding: "20px 24px", background: isSel ? "rgba(0,212,170,0.08)" : "#0c0c0c", border: `1px solid ${isSel ? "#00D4AA" : "#1e1e1e"}`, borderRadius: 16, cursor: "pointer", transition: "all 0.3s ease" }}>
+                    <div style={{ width: 28, height: 28, minWidth: 28, borderRadius: "50%", border: `2px solid ${isSel ? "#00D4AA" : "#2a2a2a"}`, background: isSel ? "#00D4AA" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 700, color: isSel ? "#000" : "#555" }}>{isSel ? "✓" : ["A","B","C"][i]}</div>
+                    <div style={{ fontSize: "0.95rem", color: isSel ? "#f0f0f0" : "#b0b0b0", lineHeight: 1.5 }}>{opt.label}</div>
+                  </div>);
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* PARTIAL */}
+        {screen === "partial" && (
+          <div style={{ animation: "fadeIn 0.6s ease" }}>
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+              <div style={{ display: "inline-flex", padding: "8px 20px", borderRadius: 100, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 24, background: `${badgeColor}15`, border: `1px solid ${badgeColor}30`, color: badgeColor }}>{level.badge}</div>
+              <div style={{ fontFamily: serif, fontSize: "4.5rem", fontWeight: 600, lineHeight: 1, color: "#f0f0f0", marginBottom: 20 }}>{totalScore} <span style={{ fontSize: "1.5rem", color: "#555", fontWeight: 400 }}>/ 21</span></div>
+              <h2 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 12 }}>{level.title}</h2>
+              <p style={{ fontSize: "0.95rem", color: "#888", maxWidth: 440, margin: "0 auto", lineHeight: 1.7 }}>{level.subtitle}</p>
+            </div>
+            <div style={{ ...card, marginBottom: 24 }}>
+              <div style={{ ...lbl, marginBottom: 24 }}>As 4 dimensões da sua marca</div>
+              {Object.entries(CORDAS).map(([key, corda], i) => (<CordaBar key={key} name={corda.name} color={corda.color} pts={cordaScores[key].pts} max={cordaScores[key].max} pct={cordaScores[key].pct} delay={i*150} blurred={false} />))}
+            </div>
+            {/* BLUR TEASER */}
+            <div style={{ position: "relative", marginBottom: 32 }}>
+              <div style={{ opacity: 0.2, filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}>
+                <div style={{ ...card, borderLeft: "3px solid #E94560", marginBottom: 8 }}><div style={{ height: 80 }} /></div>
+                <div style={{ ...card, borderLeft: "3px solid #A855F7", marginBottom: 8 }}><div style={{ height: 60 }} /></div>
+                <div style={{ ...card, borderTop: "2px solid #00D4AA", marginBottom: 8 }}><div style={{ height: 100 }} /></div>
+                <div style={{ ...card, borderTop: "2px solid #FFAA00" }}><div style={{ height: 80 }} /></div>
+              </div>
+              <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.95))", borderRadius: 16 }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "#111", border: "1px solid #2a2a2a", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+                <p style={{ fontFamily: serif, fontSize: "1.2rem", color: "#f0f0f0", marginBottom: 8, textAlign: "center" }}>O diagnóstico completo vai além do score</p>
+                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 6, textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>Análise individual de cada dimensão, cruzamento entre as quatro,</p>
+                <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 28, textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>identificação de padrão e impacto no negócio.</p>
+                <button onClick={() => setScreen("capture")} style={btn}>Desbloquear diagnóstico →</button>
+              </div>
+            </div>
+            <div style={{ textAlign: "center" }}><button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1e1e1e", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button></div>
+          </div>
+        )}
+
+        {/* CAPTURE */}
+        {screen === "capture" && (
+          <div style={{ animation: "fadeIn 0.5s ease" }}>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(0,212,170,0.1)", border: "1px solid rgba(0,212,170,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <h2 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 12 }}>Seu diagnóstico completo está pronto</h2>
+              <p style={{ color: "#888", fontSize: "0.85rem", lineHeight: 1.6 }}>Inclui análise individual de cada dimensão, cruzamento entre elas, identificação de padrão e leitura personalizada por inteligência artificial. Preencha para acessar.</p>
+            </div>
+            {[{ key: "name", label: "NOME", ph: "Seu nome", type: "text" }, { key: "email", label: "EMAIL", ph: "seu@email.com", type: "email" }, { key: "whatsapp", label: "WHATSAPP", ph: "(11) 99999-9999", type: "tel" }].map(f => (
+              <div key={f.key} style={{ marginBottom: 16 }}><label style={{ ...lbl, display: "block", marginBottom: 8 }}>{f.label}</label><input type={f.type} placeholder={f.ph} value={form[f.key]} onChange={e => setForm({...form, [f.key]: e.target.value})} style={{ width: "100%", padding: "16px 20px", background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 12, fontSize: "0.95rem", color: "#f0f0f0", outline: "none", fontFamily: "inherit" }} /></div>
+            ))}
+            <button onClick={() => { if (form.name && form.email) { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', { name: form.name, email: form.email }); sendToMake(); setScreen("loading"); } }} style={{ ...btn, width: "100%", marginTop: 24 }}>Ver diagnóstico completo →</button>
+            <p style={{ textAlign: "center", fontSize: "0.7rem", color: "#444", marginTop: 16 }}>Seus dados são utilizados exclusivamente para o envio do diagnóstico. Sem spam.</p>
+          </div>
+        )}
+
+        {/* LOADING */}
+        {screen === "loading" && (
+          <div style={{ textAlign: "center", animation: "fadeIn 0.5s ease" }}>
+            <div style={{ width: 80, height: 80, margin: "0 auto 32px", position: "relative" }}>
+              <div style={{ position: "absolute", inset: 0, border: "2px solid #1e1e1e", borderTopColor: "#E94560", borderRadius: "50%", animation: "spin 1.2s linear infinite" }} />
+              <div style={{ position: "absolute", inset: 15, border: "2px solid #1e1e1e", borderBottomColor: "#A855F7", borderRadius: "50%", animation: "spin 0.8s linear infinite reverse" }} />
+              <div style={{ position: "absolute", inset: 30, border: "2px solid #1e1e1e", borderTopColor: "#00D4AA", borderRadius: "50%", animation: "spin 1.5s linear infinite" }} />
+            </div>
+            <div style={{ fontFamily: serif, fontSize: "1.3rem", color: "#f0f0f0", marginBottom: 12 }}>Processando seu diagnóstico</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 24 }}>
+              {["Calculando score de cada dimensão...", extractDomain(form.email) ? "Acessando e analisando o site da empresa..." : "Cruzando Estratégia, Cultura e Experiência...", "Identificando padrões e contradições...", extractDomain(form.email) ? "Cruzando dados do site com o diagnóstico via IA..." : "Gerando leitura personalizada com inteligência artificial..."].map((s, i) => (
+                <div key={i} style={{ fontSize: "0.8rem", color: loadingStep > i+1 ? "#666" : loadingStep === i+1 ? "#00D4AA" : "#333", transition: "color 0.4s ease" }}>{loadingStep > i+1 ? "· " : ""}{s}</div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FULL RESULT */}
+        {screen === "full" && diagnosis && (
+          <div style={{ animation: "fadeIn 0.6s ease" }}>
+            {/* HEADER */}
+            <div style={{ textAlign: "center", marginBottom: 40 }}>
+              <div style={{ display: "inline-flex", padding: "8px 20px", borderRadius: 100, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, background: `${badgeColor}15`, border: `1px solid ${badgeColor}30`, color: badgeColor }}>{level.badge}</div>
+              <div style={{ fontFamily: serif, fontSize: "3.5rem", fontWeight: 600, lineHeight: 1, color: "#f0f0f0", marginBottom: 16 }}>{totalScore} <span style={{ fontSize: "1.2rem", color: "#555", fontWeight: 400 }}>/ 21</span></div>
+              <h2 style={{ fontFamily: serif, fontSize: "1.4rem", color: "#f0f0f0", marginBottom: 8 }}>{level.title}</h2>
+            </div>
+
+            {/* BLOCO 1: Barras */}
+            <div style={{ ...card, marginBottom: 24 }}>
+              <div style={{ ...lbl, marginBottom: 24 }}>Visão geral</div>
+              {Object.entries(CORDAS).map(([key, corda], i) => (<CordaBar key={key} name={corda.name} color={corda.color} pts={cordaScores[key].pts} max={cordaScores[key].max} pct={cordaScores[key].pct} delay={i*150} blurred={false} />))}
+            </div>
+
+            {/* BLOCO 2: Raio-X por dimensão */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ ...lbl, marginBottom: 16 }}>Raio-X por dimensão</div>
+              {Object.entries(CORDAS).map(([key, corda]) => (<DimensionCard key={key} cordaKey={key} pts={cordaScores[key].pts} max={cordaScores[key].max} color={corda.color} icon={corda.icon} />))}
+            </div>
+
+            {/* BLOCO 3: Cruzamento */}
+            <div style={{ ...card, marginBottom: 16, borderTop: `2px solid ${CORDAS[diagnosis.strongest].color}` }}>
+              <div style={{ ...lbl, color: "#00D4AA", marginBottom: 16 }}>O cruzamento</div>
+              <p style={{ fontSize: "0.9rem", color: "#b0b0b0", lineHeight: 1.8, marginBottom: 12 }}>
+                Dimensão mais forte: <strong style={{ color: CORDAS[diagnosis.strongest].color }}>{CORDAS[diagnosis.strongest].name}</strong>. Mais fraca: <strong style={{ color: CORDAS[diagnosis.weakest].color }}>{CORDAS[diagnosis.weakest].name}</strong>.
+              </p>
+              <p style={{ fontSize: "0.9rem", color: "#999", lineHeight: 1.85 }}>{diagnosis.crossText}</p>
+            </div>
+
+            {/* BLOCO 4: Padrão */}
+            {diagnosis.pattern && patternsData[diagnosis.pattern] && (
+              <div style={{ ...card, marginBottom: 16, borderTop: "2px solid #A855F7" }}>
+                <div style={{ ...lbl, color: "#A855F7", marginBottom: 16 }}>Padrão identificado</div>
+                <h3 style={{ fontFamily: serif, fontSize: "1.15rem", color: "#f0f0f0", marginBottom: 16 }}>{patternsData[diagnosis.pattern].name}</h3>
+                <div style={{ ...lbl, color: "#666", marginBottom: 12 }}>Sinais que você provavelmente reconhece:</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+                  {patternsData[diagnosis.pattern].signs.map((sign, i) => (
+                    <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <span style={{ color: "#A855F7", fontSize: "0.75rem", marginTop: 4, minWidth: 12 }}>•</span>
+                      <span style={{ fontSize: "0.88rem", color: "#999", lineHeight: 1.7 }}>{sign}</span>
+                    </div>
+                  ))}
+                </div>
+                <p style={{ fontSize: "0.9rem", color: "#b0b0b0", lineHeight: 1.8 }}>{patternsData[diagnosis.pattern].desc}</p>
+              </div>
+            )}
+
+            {/* BLOCO 5: Custo */}
+            <div style={{ ...card, marginBottom: 16, borderTop: "2px solid #FFAA00" }}>
+              <div style={{ ...lbl, color: "#FFAA00", marginBottom: 16 }}>O que isso custa</div>
+              <p style={{ fontSize: "0.9rem", color: "#999", lineHeight: 1.85 }}>{costInsights[levelKey]}</p>
+            </div>
+
+            {/* BLOCO IA: Diagnóstico personalizado */}
+            {aiInsight && (
+              <div style={{ ...card, marginBottom: 16, borderTop: "2px solid #00D4AA", background: "#060a08", borderColor: "#0d2019" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(0,212,170,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00D4AA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  </div>
+                  <span style={{ ...lbl, color: "#00D4AA", margin: 0 }}>{siteAnalyzed ? "Leitura estratégica · site + diagnóstico cruzados por IA" : "Leitura estratégica · gerada por IA"}</span>
+                </div>
+                <div style={{ fontSize: "0.92rem", color: "#b0b0b0", lineHeight: 1.85 }} dangerouslySetInnerHTML={{ __html: aiInsight }} />
+              </div>
+            )}
+
+            {/* BLOCO 6: O que não aparece */}
+            <div style={{ ...card, marginBottom: 32, background: "#080808", borderColor: "#1a1a1a" }}>
+              <div style={{ ...lbl, color: "#888", marginBottom: 16 }}>O que não aparece aqui</div>
+              <p style={{ fontSize: "0.95rem", color: "#b0b0b0", lineHeight: 1.85, marginBottom: 14 }}>
+                7 perguntas mostram <strong style={{ color: "#f0f0f0" }}>onde</strong> dói. Não mostram <strong style={{ color: "#f0f0f0" }}>por quê</strong>.
+              </p>
+              <p style={{ fontSize: "0.9rem", color: "#888", lineHeight: 1.85 }}>
+                Para isso, é preciso ouvir quem nunca é ouvido, encontrar o que a empresa evita olhar, e nomear a contradição que ninguém quer admitir. É desconfortável. Mas é o único caminho que funciona.
+              </p>
+            </div>
+
+            {/* Breakdown */}
+            <div style={{ marginBottom: 32 }}>
+              <div style={{ ...lbl, marginBottom: 14 }}>Suas respostas</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {answers.map((a, i) => {
+                  const c = a.level === "good" ? "#00D4AA" : a.level === "mid" ? "#FFAA00" : "#FF4757";
+                  const bg = a.level === "good" ? "rgba(0,212,170,0.08)" : a.level === "mid" ? "rgba(255,170,0,0.08)" : "rgba(255,71,87,0.08)";
+                  return (<div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", background: "#0a0a0a", border: "1px solid #151515", borderRadius: 10 }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: CORDAS[a.corda].color, minWidth: 6 }} />
+                    <div style={{ flex: 1, fontSize: "0.82rem", color: "#999" }}>{a.question}</div>
+                    <div style={{ fontSize: "0.72rem", fontWeight: 600, padding: "3px 10px", borderRadius: 100, background: bg, color: c }}>{a.value === 3 ? "✓" : a.value === 1 ? "~" : "✗"}</div>
+                  </div>);
+                })}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div style={{ textAlign: "center", padding: "40px 28px", background: "#080808", border: "1px solid #1a1a1a", borderRadius: 20, marginBottom: 40 }}>
+              <div style={{ fontFamily: serif, fontStyle: "italic", fontSize: "1rem", color: "#555", marginBottom: 10 }}>"Esse diagnóstico revela onde sua marca está perdendo força."</div>
+              <h3 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 10 }}>A conversa revela por quê.</h3>
+              <p style={{ fontSize: "0.85rem", color: "#555", marginBottom: 32, maxWidth: 360, margin: "0 auto 32px" }}>Uma conversa de 30 minutos com nosso time de estratégia. Sem compromisso, sem apresentação comercial. Só clareza sobre o que fazer a partir daqui.</p>
+              <button style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "18px 44px", background: "#25D366", color: "#fff", border: "none", borderRadius: 60, fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Conversar com a Enredo</button>
+              <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 20 }}>
+                <button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setForm({ name: "", email: "", whatsapp: "" }); setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1a1a1a", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button>
+              </div>
+            </div>
+            <div style={{ textAlign: "center", fontSize: "0.65rem", color: "#2a2a2a", paddingBottom: 20 }}>Diagnóstico de Marca · enredo:co © 2026</div>
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+        input::placeholder { color: #555 !important; }
+        input:focus { border-color: #00D4AA !important; background: rgba(0,212,170,0.05) !important; }
+        strong { color: #f0f0f0; font-weight: 600; }
+      `}</style>
+    </div>
+  );
+}
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(DiagnosticoV4));
+    </script>
+</body>
+</html>
