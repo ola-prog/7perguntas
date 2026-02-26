@@ -264,7 +264,7 @@ function DiagnosticoV4() {
   const [siteAnalyzed, setSiteAnalyzed] = useState(false);
 
   const WEBHOOK_URL = "https://hook.us2.make.com/x4gnn9ur5d9wf2h4gq4ozywak238gu9v";
-  const OPENROUTER_KEY = "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";
+  const OPENROUTER_KEY = "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";
 
   const extractDomain = (email) => {
     if (!email || !email.includes("@")) return null;
@@ -277,9 +277,9 @@ function DiagnosticoV4() {
     const targetUrl = "https://" + domain;
     
     const proxies = [
-      (url) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-      (url) => "https://corsproxy.io/?" + encodeURIComponent(url),
-      (url) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url)
+      (url) => "https://api.allorigins.win/get?url=" + encodeURIComponent(url),
+      (url) => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(url),
+      (url) => "https://corsproxy.org/?" + encodeURIComponent(url)
     ];
     
     let rawHtml = null;
@@ -290,14 +290,21 @@ function DiagnosticoV4() {
         console.log("[Enredo] Tentando proxy " + (i+1) + "...");
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
         
         const resp = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
         
         if (!resp.ok) { console.warn("[Enredo] Proxy " + (i+1) + " status " + resp.status); continue; }
         
-        rawHtml = await resp.text();
+        const data = await resp.text();
+        
+        // allorigins /get returns JSON with contents field
+        if (i === 0) {
+          try { const j = JSON.parse(data); rawHtml = j.contents || null; } catch(e) { rawHtml = data; }
+        } else {
+          rawHtml = data;
+        }
         
         if (rawHtml && rawHtml.length > 200) {
           console.log("[Enredo] Site capturado via proxy " + (i+1) + " (" + rawHtml.length + " chars)");
