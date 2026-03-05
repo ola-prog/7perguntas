@@ -256,6 +256,7 @@ function DiagnosticoV4() {
   const [answers, setAnswers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
+  const [formErrors, setFormErrors] = useState({});
   const [animating, setAnimating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [sending, setSending] = useState(false);
@@ -271,6 +272,52 @@ function DiagnosticoV4() {
     const domain = email.split("@")[1].toLowerCase();
     const free = ["gmail.com","hotmail.com","outlook.com","yahoo.com","icloud.com","uol.com.br","bol.com.br","terra.com.br","live.com","me.com","protonmail.com","zoho.com"];
     return free.includes(domain) ? null : domain;
+  };
+
+  const validateEmail = (email) => {
+    if (!email || !email.trim()) return "Preencha seu email";
+    const trimmed = email.trim().toLowerCase();
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(trimmed)) return "Email inválido. Verifique o formato";
+    const fakePatterns = /^(teste?|test|aaa+|bbb+|xxx+|yyy+|zzz+|abc|qwerty?|asdf?|fake|nao|nope|no|nada|nenhum|nao.?tenho|naotem|naosei|nao.?quero|lixo|spam|ninguem|ninguém|naoexiste)@/i;
+    if (fakePatterns.test(trimmed)) return "Por favor, use seu email real";
+    const localPart = trimmed.split("@")[0];
+    if (localPart.length < 3) return "Email inválido. Verifique o formato";
+    if (/^(.)\1+$/.test(localPart)) return "Por favor, use seu email real";
+    return null;
+  };
+
+  const formatWhatsApp = (value) => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length === 0) return "";
+    if (digits.length <= 2) return "(" + digits;
+    if (digits.length <= 7) return "(" + digits.slice(0, 2) + ") " + digits.slice(2);
+    return "(" + digits.slice(0, 2) + ") " + digits.slice(2, 7) + "-" + digits.slice(7);
+  };
+
+  const validateWhatsApp = (whatsapp) => {
+    if (!whatsapp || !whatsapp.trim()) return "Preencha seu WhatsApp";
+    const digits = whatsapp.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 11) return "WhatsApp deve ter 10 ou 11 dígitos";
+    if (/^(.)\1+$/.test(digits)) return "Número inválido";
+    const ddd = parseInt(digits.slice(0, 2));
+    if (ddd < 11 || ddd > 99) return "DDD inválido";
+    const fakeNumbers = ["1234567890","12345678901","0000000000","00000000000","9999999999","99999999999"];
+    if (fakeNumbers.includes(digits)) return "Por favor, use seu WhatsApp real";
+    const phoneDigits = digits.slice(2);
+    if (/^(.)\1+$/.test(phoneDigits)) return "Número inválido";
+    return null;
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!form.name || form.name.trim().length < 2) errors.name = "Preencha seu nome";
+    const emailErr = validateEmail(form.email);
+    if (emailErr) errors.email = emailErr;
+    const whatsErr = validateWhatsApp(form.whatsapp);
+    if (whatsErr) errors.whatsapp = whatsErr;
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const fetchSiteContent = async (domain) => {
@@ -726,9 +773,23 @@ function DiagnosticoV4() {
               <p style={{ color: "#888", fontSize: "0.85rem", lineHeight: 1.6 }}>Inclui análise individual de cada dimensão, cruzamento entre elas, identificação de padrão e leitura personalizada por inteligência artificial. Preencha para acessar.</p>
             </div>
             {[{ key: "name", label: "NOME", ph: "Seu nome", type: "text" }, { key: "email", label: "EMAIL", ph: "seu@email.com", type: "email" }, { key: "whatsapp", label: "WHATSAPP", ph: "(11) 99999-9999", type: "tel" }].map(f => (
-              <div key={f.key} style={{ marginBottom: 16 }}><label style={{ ...lbl, display: "block", marginBottom: 8 }}>{f.label}</label><input type={f.type} placeholder={f.ph} value={form[f.key]} onChange={e => setForm({...form, [f.key]: e.target.value})} style={{ width: "100%", padding: "16px 20px", background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 12, fontSize: "0.95rem", color: "#f0f0f0", outline: "none", fontFamily: "inherit" }} /></div>
+              <div key={f.key} style={{ marginBottom: 16 }}>
+                <label style={{ ...lbl, display: "block", marginBottom: 8 }}>{f.label}</label>
+                <input
+                  type={f.type}
+                  placeholder={f.ph}
+                  value={form[f.key]}
+                  onChange={e => {
+                    const val = f.key === "whatsapp" ? formatWhatsApp(e.target.value) : e.target.value;
+                    setForm({...form, [f.key]: val});
+                    if (formErrors[f.key]) setFormErrors({...formErrors, [f.key]: null});
+                  }}
+                  style={{ width: "100%", padding: "16px 20px", background: "#0c0c0c", border: formErrors[f.key] ? "1px solid #E94560" : "1px solid #1e1e1e", borderRadius: 12, fontSize: "0.95rem", color: "#f0f0f0", outline: "none", fontFamily: "inherit", transition: "border-color 0.3s ease" }}
+                />
+                {formErrors[f.key] && <p style={{ color: "#E94560", fontSize: "0.75rem", marginTop: 6, marginBottom: 0 }}>{formErrors[f.key]}</p>}
+              </div>
             ))}
-            <button onClick={() => { if (form.name && form.email) { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', { name: form.name, email: form.email }); sendToMake(); setScreen("loading"); } }} style={{ ...btn, width: "100%", marginTop: 24 }}>Ver diagnóstico completo →</button>
+            <button onClick={() => { if (validateForm()) { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', { name: form.name, email: form.email }); sendToMake(); setScreen("loading"); } }} style={{ ...btn, width: "100%", marginTop: 24 }}>Ver diagnóstico completo →</button>
             <p style={{ textAlign: "center", fontSize: "0.7rem", color: "#444", marginTop: 16 }}>Seus dados são utilizados exclusivamente para o envio do diagnóstico. Sem spam.</p>
           </div>
         )}
