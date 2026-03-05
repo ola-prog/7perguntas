@@ -256,6 +256,7 @@ function DiagnosticoV4() {
   const [answers, setAnswers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
+  const [honeypot, setHoneypot] = useState("");
   const [formErrors, setFormErrors] = useState({});
   const [animating, setAnimating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -298,20 +299,28 @@ function DiagnosticoV4() {
   const validateWhatsApp = (whatsapp) => {
     if (!whatsapp || !whatsapp.trim()) return "Preencha seu WhatsApp";
     const digits = whatsapp.replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 11) return "WhatsApp deve ter 10 ou 11 dígitos";
+    if (digits.length !== 11) return "WhatsApp deve ter 11 dígitos (com DDD e 9)";
     if (/^(.)\1+$/.test(digits)) return "Número inválido";
     const ddd = parseInt(digits.slice(0, 2));
-    if (ddd < 11 || ddd > 99) return "DDD inválido";
+    const dddsValidos = [11,12,13,14,15,16,17,18,19,21,22,24,27,28,31,32,33,34,35,37,38,41,42,43,44,45,46,47,48,49,51,53,54,55,61,62,63,64,65,66,67,68,69,71,73,74,75,77,79,81,82,83,84,85,86,87,88,89,91,92,93,94,95,96,97,98,99];
+    if (!dddsValidos.includes(ddd)) return "DDD inválido";
+    if (digits[2] !== "9") return "WhatsApp deve começar com 9 após o DDD";
     const fakeNumbers = ["1234567890","12345678901","0000000000","00000000000","9999999999","99999999999"];
     if (fakeNumbers.includes(digits)) return "Por favor, use seu WhatsApp real";
     const phoneDigits = digits.slice(2);
     if (/^(.)\1+$/.test(phoneDigits)) return "Número inválido";
+    if (/^9(0{8}|1{8}|2{8}|3{8}|4{8}|5{8}|6{8}|7{8}|8{8}|9{8})$/.test(phoneDigits)) return "Número inválido";
     return null;
   };
 
   const validateForm = () => {
+    if (honeypot) return false;
     const errors = {};
-    if (!form.name || form.name.trim().length < 2) errors.name = "Preencha seu nome";
+    const nameTrimmed = (form.name || "").trim();
+    if (nameTrimmed.length < 3) errors.name = "Preencha seu nome completo";
+    else if (!/\s/.test(nameTrimmed)) errors.name = "Preencha nome e sobrenome";
+    else if (/^(.)\1+\s+(.)\2+$/i.test(nameTrimmed)) errors.name = "Por favor, use seu nome real";
+    else if (/^(teste?|test|fake|nao|nada|nenhum|asdf|qwerty|aaa|bbb|xxx)\b/i.test(nameTrimmed)) errors.name = "Por favor, use seu nome real";
     const emailErr = validateEmail(form.email);
     if (emailErr) errors.email = emailErr;
     const whatsErr = validateWhatsApp(form.whatsapp);
@@ -789,6 +798,7 @@ function DiagnosticoV4() {
                 {formErrors[f.key] && <p style={{ color: "#E94560", fontSize: "0.75rem", marginTop: 6, marginBottom: 0 }}>{formErrors[f.key]}</p>}
               </div>
             ))}
+            <input type="text" name="website_url" value={honeypot} onChange={e => setHoneypot(e.target.value)} style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, width: 0 }} autoComplete="off" tabIndex={-1} />
             <button onClick={() => { if (validateForm()) { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', { name: form.name, email: form.email }); sendToMake(); setScreen("loading"); } }} style={{ ...btn, width: "100%", marginTop: 24 }}>Ver diagnóstico completo →</button>
             <p style={{ textAlign: "center", fontSize: "0.7rem", color: "#444", marginTop: 16 }}>Seus dados são utilizados exclusivamente para o envio do diagnóstico. Sem spam.</p>
           </div>
