@@ -230,19 +230,18 @@ function DimensionCard({ cordaKey, pts, max, color, icon }) {
   const diag = dimensionDiag[cordaKey][pts];
   if (!diag) return null;
   const statusColor = diag.status === "Referência" ? "#00D4AA" : diag.status === "Forte" ? "#00D4AA" : diag.status === "Instável" ? "#FFAA00" : "#FF4757";
+  const statusBg = diag.status === "Referência" ? "rgba(0,212,170,0.08)" : diag.status === "Forte" ? "rgba(0,212,170,0.08)" : diag.status === "Instável" ? "rgba(255,170,0,0.08)" : "rgba(255,71,87,0.08)";
   return (
-    <div style={{ padding: 24, background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 16, borderLeft: `3px solid ${color}`, marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ color, fontSize: "0.9rem" }}>{icon}</span>
-          <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#d0d0d0" }}>{CORDAS[cordaKey].name}</span>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: "0.7rem", fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "0.1em" }}>{diag.status}</span>
-          <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#f0f0f0" }}>{pts}/{max}</span>
-        </div>
+    <div style={{ padding: 20, background: "#0c0c0c", border: "1px solid #1e1e1e", borderRadius: 16, borderTop: `3px solid ${color}`, display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+        <span style={{ color, fontSize: "1.1rem" }}>{icon}</span>
+        <span style={{ fontSize: "0.88rem", fontWeight: 700, color: "#d0d0d0" }}>{CORDAS[cordaKey].name}</span>
       </div>
-      <p style={{ fontSize: "0.9rem", color: "#999", lineHeight: 1.8 }}>{diag.text}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span style={{ fontSize: "1.3rem", fontWeight: 700, color: "#f0f0f0", fontFamily: "'Playfair Display', Georgia, serif" }}>{pts}<span style={{ fontSize: "0.75rem", color: "#555", fontWeight: 400 }}>/{max}</span></span>
+        <span style={{ fontSize: "0.65rem", fontWeight: 600, color: statusColor, textTransform: "uppercase", letterSpacing: "0.1em", padding: "3px 8px", background: statusBg, borderRadius: 100 }}>{diag.status}</span>
+      </div>
+      <p style={{ fontSize: "0.82rem", color: "#999", lineHeight: 1.75, margin: 0, flex: 1 }}>{diag.text}</p>
     </div>
   );
 }
@@ -257,6 +256,7 @@ function DiagnosticoV4() {
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const [honeypot, setHoneypot] = useState("");
+  const [answersExpanded, setAnswersExpanded] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const [animating, setAnimating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
@@ -866,10 +866,38 @@ function DiagnosticoV4() {
         {/* FULL RESULT */}
         {screen === "full" && diagnosis && (
           <div style={{ animation: "fadeIn 0.6s ease" }}>
-            {/* HEADER */}
+            {/* HEADER com Gauge */}
             <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <div style={{ display: "inline-flex", padding: "8px 20px", borderRadius: 100, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, background: `${badgeColor}15`, border: `1px solid ${badgeColor}30`, color: badgeColor }}>{level.badge}</div>
-              <div style={{ fontFamily: serif, fontSize: "3.5rem", fontWeight: 600, lineHeight: 1, color: "#f0f0f0", marginBottom: 16 }}>{totalScore} <span style={{ fontSize: "1.2rem", color: "#555", fontWeight: 400 }}>/ 21</span></div>
+              {(() => {
+                const pct = totalScore / 21;
+                const r = 90;
+                const stroke = 10;
+                const startAngle = Math.PI;
+                const endAngle = 0;
+                const totalArc = Math.PI;
+                const filledAngle = startAngle - (totalArc * pct);
+                const cx = 100;
+                const cy = 95;
+                const bgX1 = cx + r * Math.cos(startAngle);
+                const bgY1 = cy - r * Math.sin(startAngle);
+                const bgX2 = cx + r * Math.cos(endAngle);
+                const bgY2 = cy - r * Math.sin(endAngle);
+                const fX2 = cx + r * Math.cos(filledAngle);
+                const fY2 = cy - r * Math.sin(filledAngle);
+                const largeArc = pct > 0.5 ? 1 : 0;
+                return (
+                  <div style={{ display: "inline-block", position: "relative", width: 200, height: 120, marginBottom: 12 }}>
+                    <svg width="200" height="120" viewBox="0 0 200 120">
+                      <path d={`M ${bgX1} ${bgY1} A ${r} ${r} 0 1 1 ${bgX2} ${bgY2}`} fill="none" stroke="#1e1e1e" strokeWidth={stroke} strokeLinecap="round" />
+                      {pct > 0 && <path d={`M ${bgX1} ${bgY1} A ${r} ${r} 0 ${largeArc} 1 ${fX2} ${fY2}`} fill="none" stroke={badgeColor} strokeWidth={stroke} strokeLinecap="round" style={{ filter: `drop-shadow(0 0 6px ${badgeColor}40)` }} />}
+                    </svg>
+                    <div style={{ position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", textAlign: "center" }}>
+                      <div style={{ fontFamily: serif, fontSize: "2.8rem", fontWeight: 600, lineHeight: 1, color: "#f0f0f0" }}>{totalScore}<span style={{ fontSize: "1rem", color: "#555", fontWeight: 400 }}> / 21</span></div>
+                    </div>
+                  </div>
+                );
+              })()}
+              <div style={{ display: "inline-flex", padding: "8px 20px", borderRadius: 100, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 12, background: `${badgeColor}15`, border: `1px solid ${badgeColor}30`, color: badgeColor }}>{level.badge}</div>
               <h2 style={{ fontFamily: serif, fontSize: "1.4rem", color: "#f0f0f0", marginBottom: 8 }}>{level.title}</h2>
             </div>
 
@@ -879,10 +907,12 @@ function DiagnosticoV4() {
               {Object.entries(CORDAS).map(([key, corda], i) => (<CordaBar key={key} name={corda.name} color={corda.color} pts={cordaScores[key].pts} max={cordaScores[key].max} pct={cordaScores[key].pct} delay={i*150} blurred={false} />))}
             </div>
 
-            {/* BLOCO 2: Raio-X por dimensão */}
+            {/* BLOCO 2: Raio-X por dimensão — grid 2x2 */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ ...lbl, marginBottom: 16 }}>Raio-X por dimensão</div>
-              {Object.entries(CORDAS).map(([key, corda]) => (<DimensionCard key={key} cordaKey={key} pts={cordaScores[key].pts} max={cordaScores[key].max} color={corda.color} icon={corda.icon} />))}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                {Object.entries(CORDAS).map(([key, corda]) => (<DimensionCard key={key} cordaKey={key} pts={cordaScores[key].pts} max={cordaScores[key].max} color={corda.color} icon={corda.icon} />))}
+              </div>
             </div>
 
             {/* BLOCO 3: Cruzamento */}
@@ -937,6 +967,15 @@ function DiagnosticoV4() {
               </div>
             </div>
 
+            {/* Separador visual: dados → IA */}
+            {aiInsight && Array.isArray(aiInsight) && (
+              <div style={{ display: "flex", alignItems: "center", gap: 16, margin: "32px 0 24px" }}>
+                <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, #1e1e1e)" }} />
+                <span style={{ fontSize: "0.6rem", letterSpacing: "0.2em", textTransform: "uppercase", color: "#333" }}>Leitura por IA</span>
+                <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, #1e1e1e, transparent)" }} />
+              </div>
+            )}
+
             {/* BLOCO IA: Diagnóstico personalizado — 3 cards */}
             {aiInsight && Array.isArray(aiInsight) && (
               <div style={{ marginBottom: 16 }}>
@@ -969,30 +1008,43 @@ function DiagnosticoV4() {
               </p>
             </div>
 
-            {/* Breakdown */}
+            {/* Breakdown — collapsible */}
             <div style={{ marginBottom: 32 }}>
-              <div style={{ ...lbl, marginBottom: 14 }}>Suas respostas</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div onClick={() => setAnswersExpanded(!answersExpanded)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 18px", background: "#0a0a0a", border: "1px solid #151515", borderRadius: answersExpanded ? "10px 10px 0 0" : 10, cursor: "pointer" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ ...lbl, margin: 0 }}>Suas respostas</span>
+                  <span style={{ fontSize: "0.7rem", color: "#444", background: "#141414", padding: "2px 8px", borderRadius: 100 }}>7</span>
+                </div>
+                <span style={{ color: "#555", fontSize: "0.75rem", transition: "transform 0.3s ease", transform: answersExpanded ? "rotate(180deg)" : "rotate(0)" }}>▼</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 1, overflow: "hidden", maxHeight: answersExpanded ? 700 : 192, transition: "max-height 0.4s ease" }}>
                 {answers.map((a, i) => {
                   const c = a.level === "good" ? "#00D4AA" : a.level === "mid" ? "#FFAA00" : "#FF4757";
                   const bg = a.level === "good" ? "rgba(0,212,170,0.08)" : a.level === "mid" ? "rgba(255,170,0,0.08)" : "rgba(255,71,87,0.08)";
-                  return (<div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", background: "#0a0a0a", border: "1px solid #151515", borderRadius: 10 }}>
+                  return (<div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 18px", background: "#0a0a0a", borderLeft: "1px solid #151515", borderRight: "1px solid #151515", borderBottom: i === answers.length - 1 ? "1px solid #151515" : "none", borderRadius: i === answers.length - 1 ? "0 0 10px 10px" : 0 }}>
                     <div style={{ width: 6, height: 6, borderRadius: "50%", background: CORDAS[a.corda].color, minWidth: 6 }} />
                     <div style={{ flex: 1, fontSize: "0.82rem", color: "#999" }}>{a.question}</div>
                     <div style={{ fontSize: "0.72rem", fontWeight: 600, padding: "3px 10px", borderRadius: 100, background: bg, color: c }}>{a.value === 3 ? "✓" : a.value === 1 ? "~" : "✗"}</div>
                   </div>);
                 })}
               </div>
+              {!answersExpanded && (
+                <div style={{ textAlign: "center", marginTop: -1 }}>
+                  <div style={{ background: "linear-gradient(to bottom, transparent, #000)", height: 30, marginTop: -30, position: "relative", zIndex: 1, borderRadius: "0 0 10px 10px" }} />
+                  <button onClick={() => setAnswersExpanded(true)} style={{ fontSize: "0.72rem", color: "#555", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", marginTop: 6 }}>Ver todas as respostas</button>
+                </div>
+              )}
             </div>
 
             {/* CTA */}
-            <div style={{ textAlign: "center", padding: "40px 28px", background: "#080808", border: "1px solid #1a1a1a", borderRadius: 20, marginBottom: 40 }}>
+            <div style={{ textAlign: "center", padding: "48px 28px", background: "linear-gradient(165deg, #080808 0%, #0a1210 50%, #0c1a14 100%)", border: "1px solid #0d2019", borderRadius: 20, marginBottom: 40, position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${badgeColor}60, transparent)` }} />
               <div style={{ fontFamily: serif, fontStyle: "italic", fontSize: "1rem", color: "#555", marginBottom: 10 }}>"Esse diagnóstico revela onde sua marca está perdendo força."</div>
               <h3 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 10 }}>A conversa revela por quê.</h3>
-              <p style={{ fontSize: "0.85rem", color: "#555", marginBottom: 32, maxWidth: 360, margin: "0 auto 32px" }}>Uma conversa de 30 minutos com nosso time de estratégia. Sem compromisso, sem apresentação comercial. Só clareza sobre o que fazer a partir daqui.</p>
-              <button style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "18px 44px", background: "#25D366", color: "#fff", border: "none", borderRadius: 60, fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Conversar com a Enredo</button>
+              <p style={{ fontSize: "0.85rem", color: "#666", marginBottom: 32, maxWidth: 360, margin: "0 auto 32px", lineHeight: 1.7 }}>Uma conversa de 30 minutos com nosso time de estratégia. Sem compromisso, sem apresentação comercial. Só clareza sobre o que fazer a partir daqui.</p>
+              <button style={{ ...btn, padding: "20px 48px", fontSize: "1rem", boxShadow: "0 0 30px rgba(0,212,170,0.15)" }}>Conversar com a Enredo</button>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 20 }}>
-                <button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setForm({ name: "", email: "", whatsapp: "" }); setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1a1a1a", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button>
+                <button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setForm({ name: "", email: "", whatsapp: "" }); setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); setAnswersExpanded(false); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1a1a1a", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button>
               </div>
             </div>
             <div style={{ textAlign: "center", fontSize: "0.65rem", color: "#2a2a2a", paddingBottom: 20 }}>Diagnóstico de Marca · enredo:co © 2026</div>
