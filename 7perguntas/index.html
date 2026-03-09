@@ -257,6 +257,8 @@ function DiagnosticoV4() {
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState({ name: "", email: "", whatsapp: "" });
   const [formErrors, setFormErrors] = useState({});
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
   const [animating, setAnimating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [sending, setSending] = useState(false);
@@ -757,7 +759,7 @@ function DiagnosticoV4() {
                 <p style={{ fontFamily: serif, fontSize: "1.2rem", color: "#f0f0f0", marginBottom: 8, textAlign: "center" }}>O diagnóstico completo vai além do score</p>
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 6, textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>Análise individual de cada dimensão, cruzamento entre as quatro,</p>
                 <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 28, textAlign: "center", maxWidth: 320, lineHeight: 1.6 }}>identificação de padrão e impacto no negócio.</p>
-                <button onClick={() => setScreen("capture")} style={btn}>Desbloquear diagnóstico →</button>
+                <button onClick={() => { setIframeLoaded(false); setIframeError(false); setScreen("capture"); }} style={btn}>Desbloquear diagnóstico →</button>
               </div>
             </div>
             <div style={{ textAlign: "center" }}><button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1e1e1e", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button></div>
@@ -772,24 +774,36 @@ function DiagnosticoV4() {
               <h2 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 12 }}>Seu diagnóstico completo está pronto</h2>
               <p style={{ color: "#888", fontSize: "0.85rem", lineHeight: 1.6 }}>Inclui análise individual de cada dimensão, cruzamento entre elas, identificação de padrão e leitura personalizada por inteligência artificial. Preencha para acessar.</p>
             </div>
-            {[{ key: "name", label: "NOME", ph: "Seu nome", type: "text" }, { key: "email", label: "EMAIL", ph: "seu@email.com", type: "email" }, { key: "whatsapp", label: "WHATSAPP", ph: "(11) 99999-9999", type: "tel" }].map(f => (
-              <div key={f.key} style={{ marginBottom: 16 }}>
-                <label style={{ ...lbl, display: "block", marginBottom: 8 }}>{f.label}</label>
-                <input
-                  type={f.type}
-                  placeholder={f.ph}
-                  value={form[f.key]}
-                  onChange={e => {
-                    const val = f.key === "whatsapp" ? formatWhatsApp(e.target.value) : e.target.value;
-                    setForm({...form, [f.key]: val});
-                    if (formErrors[f.key]) setFormErrors({...formErrors, [f.key]: null});
-                  }}
-                  style={{ width: "100%", padding: "16px 20px", background: "#0c0c0c", border: formErrors[f.key] ? "1px solid #E94560" : "1px solid #1e1e1e", borderRadius: 12, fontSize: "0.95rem", color: "#f0f0f0", outline: "none", fontFamily: "inherit", transition: "border-color 0.3s ease" }}
-                />
-                {formErrors[f.key] && <p style={{ color: "#E94560", fontSize: "0.75rem", marginTop: 6, marginBottom: 0 }}>{formErrors[f.key]}</p>}
-              </div>
-            ))}
-            <button onClick={() => { if (validateForm()) { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', { name: form.name, email: form.email }); sendToMake(); setScreen("loading"); } }} style={{ ...btn, width: "100%", marginTop: 24 }}>Ver diagnóstico completo →</button>
+            <div style={{ position: "relative", width: "100%", minHeight: 400 }}>
+              {!iframeLoaded && !iframeError && (
+                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 12, zIndex: 2, pointerEvents: "none", padding: "20px 0" }} aria-busy="true" aria-hidden="true">
+                  <div style={{ height: 14, width: "60%", borderRadius: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                  <div style={{ height: 14, width: "90%", borderRadius: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                  <div style={{ height: 14, width: "80%", borderRadius: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                  <div style={{ height: 14, width: "100%", borderRadius: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                  <div style={{ height: 14, width: "70%", borderRadius: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                  <div style={{ height: 44, borderRadius: 10, marginTop: 8, background: "linear-gradient(90deg,#1a1a1a 25%,#222 37%,#1a1a1a 63%)", backgroundSize: "400% 100%", animation: "shimmer 1.1s infinite" }} />
+                </div>
+              )}
+              {iframeError && (
+                <div style={{ textAlign: "center", padding: "40px 20px" }}>
+                  <p style={{ color: "#E94560", fontSize: "0.9rem", marginBottom: 16 }}>Não foi possível carregar o formulário.</p>
+                  <a href="https://forms.monday.com/forms/fd13490c4340e472f9f646f5deb464ac?r=use1" target="_blank" rel="noopener noreferrer" style={{ ...btn, display: "inline-block", textDecoration: "none" }}>Abrir formulário em nova aba →</a>
+                </div>
+              )}
+              <iframe
+                src="https://forms.monday.com/forms/fd13490c4340e472f9f646f5deb464ac?r=use1"
+                width="100%"
+                height="1500"
+                style={{ border: 0, display: "block", background: "transparent", opacity: iframeLoaded ? 1 : 0, transition: "opacity 0.4s ease" }}
+                loading="lazy"
+                scrolling="no"
+                referrerPolicy="no-referrer-when-downgrade"
+                onLoad={() => setIframeLoaded(true)}
+                onError={() => setIframeError(true)}
+              />
+            </div>
+            <button onClick={() => { setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); trackEvent('LeadCapture', {}); sendToMake(); setScreen("loading"); }} style={{ ...btn, width: "100%", marginTop: 24 }}>Já preenchi — ver diagnóstico completo →</button>
             <p style={{ textAlign: "center", fontSize: "0.7rem", color: "#444", marginTop: 16 }}>Seus dados são utilizados exclusivamente para o envio do diagnóstico. Sem spam.</p>
           </div>
         )}
@@ -926,6 +940,7 @@ function DiagnosticoV4() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+        @keyframes shimmer { 0% { background-position:100% 0 } 100% { background-position:0 0 } }
         input::placeholder { color: #555 !important; }
         input:focus { border-color: #00D4AA !important; background: rgba(0,212,170,0.05) !important; }
         strong { color: #f0f0f0; font-weight: 600; }
