@@ -57,7 +57,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
 
     <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useMemo } = React;
 
     /* =============================================
        TRACKING HELPERS
@@ -267,6 +267,18 @@ function DiagnosticoV4() {
   const [siteAnalyzed, setSiteAnalyzed] = useState(false);
 
   const WEBHOOK_URL = "https://hook.us2.make.com/x4gnn9ur5d9wf2h4gq4ozywak238gu9v";
+
+  // Captura UTM params da URL
+  const utmParams = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get("utm_source") || "",
+      utm_medium: params.get("utm_medium") || "",
+      utm_campaign: params.get("utm_campaign") || "",
+      utm_term: params.get("utm_term") || "",
+      utm_content: params.get("utm_content") || ""
+    };
+  }, []);
   const OPENROUTER_KEY = "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";
 
   const extractDomain = (email) => {
@@ -507,7 +519,12 @@ function DiagnosticoV4() {
       })),
       respostas_resumo: answers.map((a, i) => `P${i+1} (${a.dimension}): ${a.label} [${a.value}pts]`).join(" | "),
       data: new Date().toISOString(),
-      origem: window.location.href || "diagnostico-enredo"
+      origem: window.location.href || "diagnostico-enredo",
+      utm_source: utmParams.utm_source,
+      utm_medium: utmParams.utm_medium,
+      utm_campaign: utmParams.utm_campaign,
+      utm_term: utmParams.utm_term,
+      utm_content: utmParams.utm_content
     };
 
     try {
