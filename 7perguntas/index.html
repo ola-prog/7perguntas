@@ -875,7 +875,7 @@ function DiagnosticoV4() {
                   </div>
                   <span style={{ ...lbl, color: "#00D4AA", margin: 0 }}>{siteAnalyzed ? "Leitura estratégica · site + diagnóstico cruzados por IA" : "Leitura estratégica · gerada por IA"}</span>
                 </div>
-                <div style={{ fontSize: "0.92rem", color: "#b0b0b0", lineHeight: 1.85 }} dangerouslySetInnerHTML={{ __html: aiInsight }} />
+                <div style={{ fontSize: "0.92rem", color: "#b0b0b0", lineHeight: 1.85 }} dangerouslySetInnerHTML={{ __html: aiInsight }} className="ai-insight" />
               </div>
             )}
 
@@ -911,7 +911,7 @@ function DiagnosticoV4() {
               <div style={{ fontFamily: serif, fontStyle: "italic", fontSize: "1rem", color: "#555", marginBottom: 10 }}>"Esse diagnóstico revela onde sua marca está perdendo força."</div>
               <h3 style={{ fontFamily: serif, fontSize: "1.5rem", color: "#f0f0f0", marginBottom: 10 }}>A conversa revela por quê.</h3>
               <p style={{ fontSize: "0.85rem", color: "#555", marginBottom: 32, maxWidth: 360, margin: "0 auto 32px" }}>Uma conversa de 30 minutos com nosso time de estratégia. Sem compromisso, sem apresentação comercial. Só clareza sobre o que fazer a partir daqui.</p>
-              <button style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "18px 44px", background: "#25D366", color: "#fff", border: "none", borderRadius: 60, fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Conversar com a Enredo</button>
+              <a href="https://wa.me/5511919732587" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "18px 44px", background: "#25D366", color: "#fff", border: "none", borderRadius: 60, fontSize: "0.95rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", textDecoration: "none" }}>Conversar com a Enredo</a>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginTop: 20 }}>
                 <button onClick={() => { setScreen("intro"); setCurrentQ(0); setAnswers([]); setSelected(null); setForm({ name: "", email: "", whatsapp: "" }); setAiInsight(null); setAiReady(false); setSiteAnalyzed(false); setLoadingStep(0); }} style={{ padding: "12px 24px", background: "transparent", border: "1px solid #1a1a1a", borderRadius: 60, color: "#555", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Refazer diagnóstico</button>
               </div>
@@ -926,6 +926,8 @@ function DiagnosticoV4() {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.3 } }
+        .ai-insight p { margin: 0 0 20px 0; }
+        .ai-insight p:last-child { margin-bottom: 0; }
         input::placeholder { color: #555 !important; }
         input:focus { border-color: #00D4AA !important; background: rgba(0,212,170,0.05) !important; }
         strong { color: #f0f0f0; font-weight: 600; }
